@@ -10,6 +10,7 @@ data ClaskData = ClaskData {decks :: [Deck], tracker :: Tracker} deriving (Show)
 getAction :: IO Action
 getAction = do
     input <- getLine
+    printf $ repKeysAndActions allKeysAndActions
     let actionsWithShortcuts = zip allKeyShortcuts allActions 
     print actionsWithShortcuts
     let action = lookup input actionsWithShortcuts
@@ -18,7 +19,15 @@ getAction = do
 allActions :: [Action]
 allActions = [Quiz ..]
 
+allKeyShortcuts :: [String]
 allKeyShortcuts = map (\x -> [x]) ['a' .. 'z'] 
+
+allKeysAndActions :: [(String, Action)]
+allKeysAndActions = zip allKeyShortcuts allActions
+
+repKeysAndActions :: [(String, Action)] -> String
+repKeysAndActions choices = unlines [key ++ ")" ++ " " ++ (show action) | (key, action) <- choices]
+
 
 runAction :: Action -> IO ()
 runAction action
