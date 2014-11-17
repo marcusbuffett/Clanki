@@ -2,56 +2,34 @@ module Main where
 import Tracker
 import Card
 import Deck
+import Add
+import ClaskData
+import Input
 import Data.List(lookup)
+import Text.Printf(printf)
 data Action = Quiz | Add | Quit deriving (Show, Eq, Ord, Enum)
-data AddAction = NewDeck | ToDeck Deck deriving (Show, Eq)
-data ClaskData = ClaskData {decks :: [Deck], tracker :: Tracker} deriving (Show)
 
-getAction :: IO Action
-getAction = do
-    input <- getLine
-    printf $ repKeysAndActions allKeysAndActions
-    let actionsWithShortcuts = zip allKeyShortcuts allActions 
-    print actionsWithShortcuts
-    let action = lookup input actionsWithShortcuts
-    return Quiz
-    
 allActions :: [Action]
 allActions = [Quiz ..]
 
-allKeyShortcuts :: [String]
-allKeyShortcuts = map (\x -> [x]) ['a' .. 'z'] 
+getAction :: IO (Maybe Action)
+getAction = do
+    Input.getUserChoice allActions
 
-allKeysAndActions :: [(String, Action)]
-allKeysAndActions = zip allKeyShortcuts allActions
+userInputLetter :: IO String
+userInputLetter = do
+    input <- fmap (:[]) getChar
+    putStrLn ""
+    return input
 
-repKeysAndActions :: [(String, Action)] -> String
-repKeysAndActions choices = unlines [key ++ ")" ++ " " ++ (show action) | (key, action) <- choices]
-
-
-runAction :: Action -> IO ()
-runAction action
-    | action == Quiz = print "quiz"
-    | action == Add  = print "add"
-    | action == Quit = print "quit"
-    | otherwise      = print "error"
-
-
-getAddAction :: ClaskData -> IO AddAction
-getAddAction claskData
-    | null $ decks claskData = return NewDeck
-    | otherwise = do
-        chosenIndex <- readLn :: IO Int
-        let chosenDeck = decks claskData !! chosenIndex
-        return $ ToDeck chosenDeck
-
-
-addLoop :: ClaskData -> IO ClaskData
-addLoop claskData = do
-    addAction <- getAddAction claskData
-    case addAction of 
-        NewDeck     -> return $ claskData
-        ToDeck deck -> return $ claskData
+runAction :: Maybe Action -> ClaskData -> IO String
+runAction action claskData= case action of 
+    Just Quit -> return $ "QUIT"
+    Just Add  -> addLoop claskData   >>= mainLoop
+    Just Quiz -> quizLoop claskData  >>= mainLoop
+    Nothing   -> do
+        print "Invalid input"
+        mainLoop claskData
 
 
 quizLoop :: ClaskData -> IO ClaskData
@@ -61,12 +39,8 @@ quizLoop claskData = return claskData
 mainLoop :: ClaskData -> IO String
 mainLoop claskData = do
     action <- getAction
-    case action of 
-        Quit -> return $ show claskData
-        Add  -> addLoop claskData   >>= mainLoop
-        Quiz -> quizLoop claskData  >>= mainLoop
-    {-return $ show claskData-}
-    {-mainLoop claskData-}
+    print claskData
+    runAction action claskData
 
 
 getData :: IO ClaskData
@@ -77,4 +51,3 @@ main :: IO ()
 main = do
     claskData <- getData
     mainLoop claskData >>= print
-    print claskData

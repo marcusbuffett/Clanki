@@ -1,3 +1,6 @@
 module Deck where
 import Card
-type Deck = [Card]
+data Deck = Deck {dCards :: [Card], dName :: String} deriving (Show, Eq, Read)
+
+addCard :: Card -> Deck -> Deck
+addCard card deck = deck {dCards = (dCards deck) ++ [card]}
