@@ -2,7 +2,7 @@ module ClaskData where
 import Deck
 import Tracker
 import Card
-data ClaskData = ClaskData {decks :: [Deck], tracker :: Tracker} deriving (Show)
+data ClaskData = ClaskData {decks :: [Deck], tracker :: Tracker} deriving (Show, Read)
 
 containsDeckNamed :: String -> ClaskData -> Bool
 containsDeckNamed name claskData
@@ -11,6 +11,9 @@ containsDeckNamed name claskData
 
 addDeckToData :: Deck -> ClaskData -> ClaskData
 addDeckToData deck claskData = claskData {decks = (decks claskData) ++ [deck]}
+
+allCards :: ClaskData -> [Card]
+allCards claskData = concat [dCards deck | deck <- decks claskData]
 
 removeDeckNamed :: String -> [Deck] -> [Deck]
 removeDeckNamed name decks = filter (\d -> dName d /= name) decks

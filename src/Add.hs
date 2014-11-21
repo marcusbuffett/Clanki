@@ -5,9 +5,13 @@ import Tracker
 import Data.List(lookup)
 import Data.Char(isSpace)
 import ClaskData
+import Display
 import Text.Printf(printf)
 import qualified Input
 data AddAction = NewDeck | ToDeck deriving (Show, Eq)
+
+instance Display AddAction where
+    display addAct = show addAct
 
 addLoop :: ClaskData -> IO ClaskData
 addLoop claskData = do
@@ -66,7 +70,7 @@ toDeckLoop deck = do
                         return deck
                     _  -> do
                         let card = Card question answer
-                        toDeckLoop (addCard card deck)
+                        toDeckLoop (addCardToDeck card deck)
 
 getAddAction :: ClaskData -> IO (Maybe AddAction)
 getAddAction claskData
