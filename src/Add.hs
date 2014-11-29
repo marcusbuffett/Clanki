@@ -1,10 +1,9 @@
 module Add where
 import Card
-import Deck
+import Decks
 import Tracker
 import Data.List(lookup)
 import Data.Char(isSpace)
-import ClaskData
 import Display
 import Text.Printf(printf)
 import qualified Input
@@ -13,45 +12,44 @@ data AddAction = NewDeck | ToDeck deriving (Show, Eq)
 instance Display AddAction where
     display addAct = show addAct
 
-addLoop :: ClaskData -> IO ClaskData
-addLoop claskData = do
-    addAction <- getAddAction claskData
-    runAddAction addAction claskData
+addLoop :: [Deck] -> IO [Deck]
+addLoop decks = do
+    addAction <- getAddAction decks
+    runAddAction addAction decks
 
-runAddAction :: Maybe AddAction -> ClaskData -> IO ClaskData
-runAddAction addAction claskData
-    | addAction == Just NewDeck = newDeck claskData
-    | addAction == Just ToDeck  = toDeck claskData
-    | addAction == Nothing      = return claskData
+runAddAction :: Maybe AddAction -> [Deck] -> IO [Deck]
+runAddAction addAction decks
+    | addAction == Just NewDeck = newDeck decks
+    | addAction == Just ToDeck  = toDeck decks
+    | addAction == Nothing      = return decks
 
-newDeck :: ClaskData -> IO ClaskData
-newDeck claskData = do
+newDeck :: [Deck] -> IO [Deck]
+newDeck decks = do
     print "Please input the name of the new deck"
     deckName <- getLine
     case deckName of 
         "" -> do
-                return claskData
-        _  -> if containsDeckNamed deckName claskData 
+                return decks
+        _  -> if any (\deck -> dName deck == deckName) decks
                 then do
                   print "Invalid input, already a deck with that name"
-                  newDeck claskData
+                  newDeck decks
                 else 
-                  return $ addDeckWithName deckName claskData
+                  return $ addDeckWithName deckName decks
 
-addDeckWithName :: String -> ClaskData -> ClaskData
-addDeckWithName name claskData = addDeckToData deck claskData
-    where deck = Deck {dCards = [], dName = name}
+addDeckWithName :: String -> [Deck] -> [Deck]
+addDeckWithName name decks = decks ++ [Deck {dCards = [], dName = name}]
 
-toDeck :: ClaskData -> IO ClaskData
-toDeck claskData = do
-    chosenDeck <- Input.getUserChoice $ decks claskData
+toDeck :: [Deck] -> IO [Deck]
+toDeck decks = do
+    chosenDeck <- Input.getUserChoice $ decks
     case chosenDeck of
         Just deck -> do
                         deckWithNewItems <- toDeckLoop deck
-                        let newDecks = replaceDeck deckWithNewItems (decks claskData)
-                        let newTracker = updateTrackerWithCards (dCards deckWithNewItems) (tracker claskData)
-                        return $ claskData {decks = newDecks, tracker = newTracker} 
-        Nothing -> return claskData
+                        let newDecks = replaceDeckNamed (dName deck) deckWithNewItems decks
+                        return $ newDecks
+        Nothing -> return decks
+
 
 toDeckLoop :: Deck -> IO Deck
 toDeckLoop deck = do
@@ -69,12 +67,12 @@ toDeckLoop deck = do
                         print "You wish to stop adding"
                         return deck
                     _  -> do
-                        let card = Card question answer
+                        let card = newCard question answer
                         toDeckLoop (addCardToDeck card deck)
 
-getAddAction :: ClaskData -> IO (Maybe AddAction)
-getAddAction claskData
-    | null $ decks claskData = return $ Just NewDeck
+getAddAction :: [Deck] -> IO (Maybe AddAction)
+getAddAction decks
+    | null decks = return $ Just NewDeck
     | otherwise = Input.getUserChoice allAddActions
 
 allAddActions :: [AddAction]

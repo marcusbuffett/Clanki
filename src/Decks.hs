@@ -1,4 +1,4 @@
-module Deck where
+module Decks where
 import Card
 import Display
 import Data.List(delete)
@@ -12,3 +12,10 @@ addCardToDeck card deck = deck {dCards = (dCards deck) ++ [card]}
 
 removeCardFromDeck :: Card -> Deck -> Deck
 removeCardFromDeck card deck = deck {dCards = delete card (dCards deck)}
+
+allCards :: [Deck] -> [Card]
+allCards decks = concat [dCards deck | deck <- decks]
+
+replaceDeckNamed :: String -> Deck -> [Deck] -> [Deck]
+replaceDeckNamed deckName deck decks = filter (\d -> dName d /= deckName) decks ++ [deck]
+

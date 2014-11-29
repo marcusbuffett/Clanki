@@ -15,7 +15,6 @@ getUserChoice choices = do
 
 getChoiceWithKeys :: (Display a) => [(String, a)] -> IO (Maybe a)
 getChoiceWithKeys choices = do
-    print "Please select an option :"
     hSetBuffering stdin NoBuffering
     hSetBuffering stdout NoBuffering
     printf $ repKeysAndValues choices
@@ -23,6 +22,7 @@ getChoiceWithKeys choices = do
     let action = lookup input (choices)
     hSetBuffering stdin LineBuffering
     hSetBuffering stdout LineBuffering
+    printf "\n"
     return action
 
 userInputLetter :: IO String

@@ -1,11 +1,11 @@
 module Main where
 import Tracker
 import Card
-import Deck
+import Decks
 import Add
-import ClaskData
 import Input
 import Remove
+import Quiz
 import Data.List(lookup)
 import Text.Printf(printf)
 import System.Directory(getCurrentDirectory, doesFileExist)
@@ -29,45 +29,41 @@ userInputLetter = do
     putStrLn ""
     return input
 
-runAction :: Maybe Action -> ClaskData -> IO ClaskData
-runAction action claskData= case action of 
-    Just Quit   -> return claskData
-    Just Add    -> addLoop claskData   >>= mainLoop
-    Just Quiz   -> quizLoop claskData  >>= mainLoop
-    Just Remove -> removeLoop claskData >>= mainLoop
+runAction :: Maybe Action -> [Deck] -> IO [Deck]
+runAction action decks= case action of 
+    Just Quit   -> return decks
+    Just Add    -> addLoop decks   >>= mainLoop
+    Just Quiz   -> quizLoop decks  >>= mainLoop
+    Just Remove -> removeLoop decks >>= mainLoop
     Nothing   -> do
         print "Invalid input"
-        mainLoop claskData
-
-quizLoop :: ClaskData -> IO ClaskData
-quizLoop claskData = return claskData
+        mainLoop decks
 
 
-mainLoop :: ClaskData -> IO ClaskData
-mainLoop claskData = do
+mainLoop :: [Deck] -> IO [Deck]
+mainLoop decks = do
     action <- getAction
-    print claskData
-    runAction action claskData
+    runAction action decks
 
 
-loadData :: IO ClaskData
+loadData :: IO [Deck]
 loadData = do
     fileExists <- doesFileExist "thing.data"
     if fileExists
         then do
         x <- readFile "thing.data" 
-        print x
-        printf $ show (read x :: ClaskData)
-        return (read x :: ClaskData)
-        else return $ ClaskData [] []
+        return (read x :: [Deck])
+        else return $ []
 
 
-saveData :: ClaskData -> IO ()
-saveData claskData = writeFile "thing.data" (show claskData)
+saveData :: [Deck] -> IO ()
+saveData decks = writeFile "thing.data" (show decks)
 
 
 main :: IO ()
 main = do
-    {-getCurrentDirectory >= print-}
-    claskData <- loadData
-    mainLoop claskData >>= saveData
+    decks <- loadData
+    newDecks <- mainLoop decks
+    saveData newDecks
+    return ()
+

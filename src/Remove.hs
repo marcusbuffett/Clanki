@@ -1,10 +1,9 @@
 module Remove where
 import Card
-import Deck
+import Decks
 import Tracker
 import Data.List(lookup)
 import Data.Char(isSpace)
-import ClaskData
 import Display
 import Text.Printf(printf)
 import qualified Input
@@ -15,38 +14,36 @@ instance Display RemoveAction where
         | removeAct == RemoveDeck = "Remove a deck"
         | removeAct == RemoveFromDeck = "Remove cards from a deck"
 
-removeLoop :: ClaskData -> IO ClaskData
-removeLoop claskData = do
-    removeAction <- getRemoveAction claskData
-    updatedClaskData <- runRemoveAction removeAction claskData
-    newTracker <- trimUnusedCards (allCards updatedClaskData) (tracker claskData) 
-    return $ updatedClaskData {tracker = newTracker}
+removeLoop :: [Deck] -> IO [Deck]
+removeLoop decks = do
+    removeAction <- getRemoveAction decks
+    updatedDecks <- runRemoveAction removeAction decks
+    return $ updatedDecks
 
-runRemoveAction :: Maybe RemoveAction -> ClaskData -> IO ClaskData
-runRemoveAction removeAction claskData
-    | removeAction == Just RemoveDeck     = removeDeck claskData
-    | removeAction == Just RemoveFromDeck = removeFromDeck claskData
-    | removeAction == Nothing             = return claskData
+runRemoveAction :: Maybe RemoveAction -> [Deck] -> IO [Deck]
+runRemoveAction removeAction decks
+    | removeAction == Just RemoveDeck     = removeDeck decks
+    | removeAction == Just RemoveFromDeck = removeFromDeck decks
+    | removeAction == Nothing             = return decks
 
-removeDeck :: ClaskData -> IO ClaskData
-removeDeck claskData = do
+removeDeck :: [Deck] -> IO [Deck]
+removeDeck decks = do
     print "Choose what deck to remove"
-    input <- Input.getUserChoice $ decks claskData
+    input <- Input.getUserChoice decks
     case input of 
-        Just deck -> return $ claskData {decks = removeDeckNamed (dName deck) (decks claskData)}
-        Nothing   -> return claskData
+        Just deck -> return $ filter (/= deck) decks
+        Nothing   -> return decks
 
 
-removeFromDeck :: ClaskData -> IO ClaskData
-removeFromDeck claskData = do
-    chosenDeck <- Input.getUserChoice $ decks claskData
+removeFromDeck :: [Deck] -> IO [Deck]
+removeFromDeck decks = do
+    chosenDeck <- Input.getUserChoice $ decks
     case chosenDeck of
         Just deck -> do
-                        deckWithItemsRemoved <- removeFromDeckLoop deck
-                        let newDecks = replaceDeck deckWithItemsRemoved (decks claskData)
-                        let newTracker = updateTrackerWithCards (dCards deckWithItemsRemoved) (tracker claskData)
-                        return $ claskData {decks = newDecks, tracker = newTracker} 
-        Nothing -> return claskData
+                        updatedDeck <- removeFromDeckLoop deck
+                        let newDecks = replaceDeckNamed (dName updatedDeck) updatedDeck decks 
+                        return newDecks 
+        Nothing -> return decks
 
 removeFromDeckLoop :: Deck -> IO Deck
 removeFromDeckLoop deck = do
@@ -55,9 +52,9 @@ removeFromDeckLoop deck = do
         Just card  -> removeFromDeckLoop (removeCardFromDeck card deck)
         Nothing    -> return deck
 
-getRemoveAction :: ClaskData -> IO (Maybe RemoveAction)
-getRemoveAction claskData
-    | null $ decks claskData = return Nothing
+getRemoveAction :: [Deck] -> IO (Maybe RemoveAction)
+getRemoveAction decks
+    | null decks = return Nothing
     | otherwise = Input.getUserChoice allRemoveActions
 
 allRemoveActions :: [RemoveAction]
