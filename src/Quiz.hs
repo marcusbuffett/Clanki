@@ -64,7 +64,7 @@ quizCard card = do
     printf "Input your answer, then press enter to continue\n"
     _ <- getLine
     --printf $ "Answer : " ++ cardAnswer card ++ "\n"
-    printf "Did you get it right?\n"
+    printf $ "Rate your answer, 0-5" ++ "\n"
     confidence <- getAnswerConfidence
     let newEF = adjustEF (ctEF $ cardTracker card) confidence
     let oldTracker = cardTracker card
