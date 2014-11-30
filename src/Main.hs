@@ -8,7 +8,7 @@ import Text.Printf(printf)
 import System.Directory(doesFileExist)
 
 import Display
-data Action = Quiz | Add | Remove | Quit {--| Show --}  deriving (Show, Eq, Ord, Enum)
+data Action = Quiz | Add | Remove | Show | Quit deriving (Show, Eq, Ord, Enum)
 
 instance Display Action where
     display act = show act
@@ -26,9 +26,9 @@ runAction action decks= case action of
     Just Add    -> addLoop decks   >>= mainLoop
     Just Quiz   -> quizLoop decks  >>= mainLoop
     Just Remove -> removeLoop decks >>= mainLoop
-    {-Just Show   -> do-}
-        {-showDecks decks -}
-        {-mainLoop decks-}
+    Just Show   -> do
+        printf $ show decks ++ "\n"
+        mainLoop decks
     Nothing     -> do
         printf $ "Invalid input" ++ "\n"
         mainLoop decks

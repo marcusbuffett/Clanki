@@ -35,7 +35,7 @@ runQuizAction quizAct decks
     | quizAct == Just FromDeck = do
         input <- Input.getUserChoice decks
         case input of
-            Just deck -> return decks
+            Just deck -> quizFromDeck deck decks
             Nothing   -> return decks
     | otherwise = return decks
 
@@ -84,8 +84,8 @@ getAnswerConfidence = do
 
 
 
-{-quizFromDeck :: Deck -> [Deck] -> IO [Deck]-}
-{-quizFromDeck deck decks = return decks-}
+quizFromDeck :: Deck -> [Deck] -> IO [Deck]
+quizFromDeck deck decks = quizDeck deck >>= (\newDeck -> return $ replaceDeckNamed (dName deck) newDeck decks)
 
 getQuizAction :: [Deck] -> IO (Maybe QuizAction)
 getQuizAction decks = Input.getUserChoice allQuizActions
