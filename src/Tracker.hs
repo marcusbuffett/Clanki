@@ -12,14 +12,16 @@ sm2 n ef
 
 shouldQuizCard :: Card -> IO Bool
 shouldQuizCard card = do
-    currentTime <- return 1000 --fmap round getPOSIXTime
+    currentTime <- fmap round getPOSIXTime
     let timeDifference = currentTime - (ctTimeQuizzed $ cardTracker card)
-        daysSinceQuiz = floor $ (fromIntegral $ timeDifference :: Float) / 3600 
+        daysSinceQuiz = floor $ (fromIntegral $ timeDifference :: Float) / 86400
         sm2Time = (ceiling $ sm2 (ctN tracker) (ctEF tracker)) :: Integer
         tracker = cardTracker card
         lastResponse = ctLastResponseQuality tracker
         noLastResponse = isNothing lastResponse
         justLastResponse = fromJust lastResponse
+    print daysSinceQuiz
+    print sm2Time
     return (daysSinceQuiz >= sm2Time ||  noLastResponse || justLastResponse < 4)
 
 adjustEF :: Float -> Integer -> Float

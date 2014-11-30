@@ -49,7 +49,7 @@ removeFromDeckLoop :: Deck -> IO Deck
 removeFromDeckLoop deck = do
     input <- Input.getUserChoice $ dCards deck
     case input of 
-        Just card  -> removeFromDeckLoop (removeCardFromDeck card deck)
+        Just card  -> removeFromDeckLoop $ removeCardFromDeck card deck
         Nothing    -> return deck
 
 getRemoveAction :: [Deck] -> IO (Maybe RemoveAction)

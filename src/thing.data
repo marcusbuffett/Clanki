@@ -1,1 +1,1 @@
-[Deck {dCards = [Card {cardQuestion = "Hi", cardAnswer = "Bye", cardTracker = CardTracker {ctEF = 2.6, ctN = 1, ctTimeQuizzed = 1417273457, ctLastResponseQuality = Just 5}}], dName = "Marcus"}]
+[Deck {dCards = [Card {cardQuestion = "Hi", cardAnswer = "Bye", cardTracker = CardTracker {ctEF = 2.56, ctN = 3, ctTimeQuizzed = 1417369113, ctLastResponseQuality = Just 5}}], dName = "Marcus"}]

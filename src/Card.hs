@@ -8,7 +8,7 @@ newCard :: String -> String -> Card
 newCard question answer = Card {cardQuestion = question, cardAnswer = answer, cardTracker = newCardTracker} 
 
 newCardTracker :: CardTracker
-newCardTracker = CardTracker {ctEF = 2.5, ctN = 1, ctTimeQuizzed = 0, ctLastResponseQuality = Nothing}
+newCardTracker = CardTracker {ctEF = 2.5, ctN = 0, ctTimeQuizzed = 0, ctLastResponseQuality = Nothing}
 
 instance Display Card where
     display card = cardQuestion card ++ "\n" ++ cardAnswer card
