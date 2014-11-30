@@ -1,5 +1,6 @@
 module Card where 
 import Display
+import Text.Printf(printf)
 data CardTracker = CardTracker {ctEF :: Float, ctN :: Int, ctTimeQuizzed :: Integer, ctLastResponseQuality :: Maybe Integer} deriving (Show, Read, Eq)
 
 data Card = Card {cardQuestion :: String, cardAnswer :: String, cardTracker :: CardTracker} deriving (Show, Read, Eq)
@@ -14,5 +15,5 @@ instance Display Card where
     display card = cardQuestion card ++ "\n" ++ cardAnswer card
 
 printCard :: Card -> IO ()
-printCard card = print $ cardQuestion card ++ "\n" ++ cardAnswer card
+printCard card = printf $ cardQuestion card ++ "\n" ++ cardAnswer card
 

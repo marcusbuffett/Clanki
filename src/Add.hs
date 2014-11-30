@@ -1,9 +1,6 @@
 module Add where
 import Card
 import Decks
-import Tracker
-import Data.List(lookup)
-import Data.Char(isSpace)
 import Display
 import Text.Printf(printf)
 import qualified Input
@@ -25,14 +22,14 @@ runAddAction addAction decks
 
 newDeck :: [Deck] -> IO [Deck]
 newDeck decks = do
-    print "Please input the name of the new deck"
+    printf $ "Please input the name of the new deck" ++ "\n"
     deckName <- getLine
     case deckName of 
         "" -> do
                 return decks
         _  -> if any (\deck -> dName deck == deckName) decks
                 then do
-                  print "Invalid input, already a deck with that name"
+                  printf $ "Invalid input, already a deck with that name" ++ "\n"
                   newDeck decks
                 else 
                   return $ addDeckWithName deckName decks
@@ -53,18 +50,18 @@ toDeck decks = do
 
 toDeckLoop :: Deck -> IO Deck
 toDeckLoop deck = do
-    print "Please input the question, enter to stop adding"
+    printf $ "Please input the question, enter to stop adding" ++ "\n"
     question <- getLine
     case question of 
         "" -> do
-                print "You wish to stop adding"
+                printf $ "You wish to stop adding" ++ "\n"
                 return deck
         _  -> do
-                print "Please input the answer"
+                printf $ "Please input the answer" ++ "\n"
                 answer <- getLine
                 case answer of
                     "" -> do
-                        print "You wish to stop adding"
+                        printf $ "You wish to stop adding" ++ "\n"
                         return deck
                     _  -> do
                         let card = newCard question answer

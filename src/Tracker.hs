@@ -20,8 +20,6 @@ shouldQuizCard card = do
         lastResponse = ctLastResponseQuality tracker
         noLastResponse = isNothing lastResponse
         justLastResponse = fromJust lastResponse
-    print daysSinceQuiz
-    print sm2Time
     return (daysSinceQuiz >= sm2Time ||  noLastResponse || justLastResponse < 4)
 
 adjustEF :: Float -> Integer -> Float

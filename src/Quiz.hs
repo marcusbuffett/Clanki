@@ -49,9 +49,7 @@ quizDeck deck = do
 
 
 maybeQuiz :: Card -> IO Card
-maybeQuiz card = do
-    fmap round getPOSIXTime >>= print
-    shouldQuizCard card >>= (\shouldQuiz -> if shouldQuiz then quizCard card else return card)
+maybeQuiz card = shouldQuizCard card >>= (\shouldQuiz -> if shouldQuiz then quizCard card else return card)
     
 
 {-quizCards :: [Card] -> [Deck] -> IO [Deck]-}
