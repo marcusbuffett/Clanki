@@ -48,8 +48,8 @@ removeFromDeckLoop deck = do
         Nothing    -> return deck
 
 getRemoveAction :: [Deck] -> IO (Maybe RemoveAction)
+getRemoveAction [] = return Nothing
 getRemoveAction decks
-    | null decks = return Nothing
     | all (null . dCards) decks = return $ Just RemoveDeck
     | otherwise  = Input.getUserChoice allRemoveActions
 

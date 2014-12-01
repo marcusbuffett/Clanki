@@ -67,9 +67,8 @@ toDeckLoop deck = do
                         toDeckLoop (addCardToDeck card deck)
 
 getAddAction :: [Deck] -> IO (Maybe AddAction)
-getAddAction decks
-    | null decks = return $ Just NewDeck
-    | otherwise = Input.getUserChoice allAddActions
+getAddAction [] = return $ Just NewDeck
+getAddAction _  = Input.getUserChoice allAddActions
 
 allAddActions :: [AddAction]
 allAddActions = [NewDeck, ToDeck]

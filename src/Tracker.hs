@@ -4,11 +4,10 @@ import Data.Time.Clock.POSIX
 import Data.Maybe(fromJust, isNothing)
 
 sm2 :: Int -> Float -> Float
-sm2 n ef
-    | n == 0 = 1
-    | n == 1 = 1
-    | n == 2 = 6
-    | otherwise = sm2 (n-1) ef
+sm2 0 _  = 1
+sm2 1 _  = 1
+sm2 2 _  = 6
+sm2 n ef = sm2 (n-1) ef * ef
 
 shouldQuizCard :: Card -> IO Bool
 shouldQuizCard card = do
