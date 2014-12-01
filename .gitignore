@@ -2,5 +2,5 @@
 .DS_Store
 tags
 *.clanki
-dist
+dist/
 

@@ -1,7 +1,7 @@
 module Tracker where
 import Card
 import Data.Time.Clock.POSIX
-import Data.Maybe(fromJust, fromMaybe, isNothing)
+import Data.Maybe(fromJust, isNothing)
 
 sm2 :: Int -> Float -> Float
 sm2 n ef
@@ -12,9 +12,9 @@ sm2 n ef
 
 shouldQuizCard :: Card -> IO Bool
 shouldQuizCard card = do
-    currentTime <- fmap round getPOSIXTime
-    let timeDifference = currentTime - (ctTimeQuizzed $ cardTracker card)
-        daysSinceQuiz = floor $ (fromIntegral $ timeDifference :: Float) / 86400
+    currentTime <- fmap round getPOSIXTime :: IO Integer
+    let timeDifference = currentTime - ctTimeQuizzed (cardTracker card)
+        daysSinceQuiz = floor $ (fromIntegral timeDifference :: Float) / 86400
         sm2Time = (ceiling $ sm2 (ctN tracker) (ctEF tracker)) :: Integer
         tracker = cardTracker card
         lastResponse = ctLastResponseQuality tracker

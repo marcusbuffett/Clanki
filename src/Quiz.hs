@@ -2,8 +2,6 @@ module Quiz where
 import Card
 import Decks
 import Tracker
-import Data.List(lookup)
-import Data.Char(isSpace)
 import Display
 import Text.Printf(printf)
 import Safe(readMay)
@@ -15,9 +13,8 @@ allQuizActions :: [QuizAction]
 allQuizActions = [AllCards, FromDeck]
 
 instance Display QuizAction where
-    display quizAct 
-        | quizAct == AllCards = "Quiz from all cards"
-        | quizAct == FromDeck = "Quiz from a deck"
+    display AllCards = "Quiz from all cards"
+    display FromDeck = "Quiz from a deck"
 
 quizLoop :: [Deck] -> IO [Deck]
 quizLoop decks = do
@@ -30,14 +27,13 @@ anyCardsToQuiz decks = do
     sequence [shouldQuizCard card | card <- cards] >>= return . (True `elem`)
 
 runQuizAction :: Maybe QuizAction -> [Deck] -> IO [Deck]
-runQuizAction quizAct decks
-    | quizAct == Just AllCards = quizDecks decks decks
-    | quizAct == Just FromDeck = do
+runQuizAction (Just AllCards) decks = quizDecks decks decks
+runQuizAction (Just FromDeck) decks = do
         input <- Input.getUserChoice decks
         case input of
             Just deck -> quizFromDeck deck decks
             Nothing   -> return decks
-    | otherwise = return decks
+runQuizAction Nothing decks = return decks
 
 quizDecks :: [Deck] -> [Deck] -> IO [Deck]
 quizDecks decksToQuiz allDecks = sequence $ map (\deck -> if deck `elem` decksToQuiz then quizDeck deck else return deck) allDecks

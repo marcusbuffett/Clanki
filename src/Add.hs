@@ -7,7 +7,7 @@ import qualified Input
 data AddAction = NewDeck | ToDeck deriving (Show, Eq)
 
 instance Display AddAction where
-    display addAct = show addAct
+    display = show
 
 addLoop :: [Deck] -> IO [Deck]
 addLoop decks = do
@@ -15,18 +15,17 @@ addLoop decks = do
     runAddAction addAction decks
 
 runAddAction :: Maybe AddAction -> [Deck] -> IO [Deck]
-runAddAction addAction decks
-    | addAction == Just NewDeck = newDeck decks
-    | addAction == Just ToDeck  = toDeck decks
-    | addAction == Nothing      = return decks
+runAddAction = maybe return newOrTo
+  where
+      newOrTo NewDeck = newDeck
+      newOrTo ToDeck  = toDeck
 
 newDeck :: [Deck] -> IO [Deck]
 newDeck decks = do
     printf $ "Please input the name of the new deck" ++ "\n"
     deckName <- getLine
     case deckName of 
-        "" -> do
-                return decks
+        "" -> return decks
         _  -> if any (\deck -> dName deck == deckName) decks
                 then do
                   printf $ "Invalid input, already a deck with that name" ++ "\n"
@@ -39,12 +38,12 @@ addDeckWithName name decks = decks ++ [Deck {dCards = [], dName = name}]
 
 toDeck :: [Deck] -> IO [Deck]
 toDeck decks = do
-    chosenDeck <- Input.getUserChoice $ decks
+    chosenDeck <- Input.getUserChoice decks
     case chosenDeck of
         Just deck -> do
                         deckWithNewItems <- toDeckLoop deck
                         let newDecks = replaceDeckNamed (dName deck) deckWithNewItems decks
-                        return $ newDecks
+                        return newDecks
         Nothing -> return decks
 
 
