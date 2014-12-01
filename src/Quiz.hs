@@ -22,9 +22,8 @@ quizLoop decks = do
     runQuizAction quizAction decks
 
 anyCardsToQuiz :: [Deck] -> IO Bool
-anyCardsToQuiz decks = do
-    let cards = allCards decks
-    sequence [shouldQuizCard card | card <- cards] >>= return . (True `elem`)
+anyCardsToQuiz decks = shouldQuizList >>= return . (True `elem`)
+    where shouldQuizList = sequence [shouldQuizCard card | card <- allCards decks] 
 
 runQuizAction :: Maybe QuizAction -> [Deck] -> IO [Deck]
 runQuizAction (Just AllCards) decks = quizDecks decks decks
@@ -59,7 +58,7 @@ quizCard card = do
     printf $ "Question : " ++ cardQuestion card ++ "\n"
     printf "Input your answer, then press enter to continue\n"
     _ <- getLine
-    --printf $ "Answer : " ++ cardAnswer card ++ "\n"
+    printf $ "Answer : " ++ cardAnswer card ++ "\n"
     printf $ "Rate your answer, 0-5" ++ "\n"
     confidence <- getAnswerConfidence
     let newEF = adjustEF (ctEF $ cardTracker card) confidence

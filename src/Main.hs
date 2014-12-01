@@ -21,17 +21,16 @@ getAction = do
     Input.getUserChoice allActions
 
 runAction :: Maybe Action -> [Deck] -> IO [Deck]
-runAction action decks= case action of 
-    Just Quit   -> return decks
-    Just Add    -> addLoop decks   >>= mainLoop
-    Just Quiz   -> quizLoop decks  >>= mainLoop
-    Just Remove -> removeLoop decks >>= mainLoop
-    Just Show   -> do
-        printf $ show decks ++ "\n"
-        mainLoop decks
-    Nothing     -> do
-        printf $ "Invalid input" ++ "\n"
-        mainLoop decks
+runAction (Just Quit) decks   = return decks
+runAction (Just Add) decks    = addLoop decks   >>= mainLoop
+runAction (Just Quiz) decks   = quizLoop decks  >>= mainLoop
+runAction (Just Remove) decks = removeLoop decks >>= mainLoop
+runAction (Just Show) decks   = do
+    printf $ show decks ++ "\n"
+    mainLoop decks
+runAction Nothing decks       = do
+    printf $ "Invalid input" ++ "\n"
+    mainLoop decks
 
 {-showDecks decks = printf $ unlines $ map display decks-}
 
@@ -52,7 +51,7 @@ loadData = do
         then do
         x <- readFile fileName
         return (read x :: [Deck])
-        else return $ []
+        else return []
 
 
 saveData :: [Deck] -> IO ()
