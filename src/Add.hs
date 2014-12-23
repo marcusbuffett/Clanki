@@ -7,7 +7,8 @@ import qualified Input
 data AddAction = NewDeck | ToDeck deriving (Show, Eq)
 
 instance Display AddAction where
-    display = show
+    display NewDeck = "New deck"
+    display ToDeck  = "Add to deck"
 
 addLoop :: [Deck] -> IO [Deck]
 addLoop decks = do
@@ -68,7 +69,9 @@ toDeckLoop deck = do
 
 getAddAction :: [Deck] -> IO (Maybe AddAction)
 getAddAction [] = return $ Just NewDeck
-getAddAction _  = Input.getUserChoice allAddActions
+getAddAction _  = do
+    printf $ "What would you like to do?" ++ "\n"
+    Input.getUserChoice allAddActions
 
 allAddActions :: [AddAction]
 allAddActions = [NewDeck, ToDeck]

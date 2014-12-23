@@ -7,6 +7,7 @@ import Text.Printf(printf)
 import Safe(readMay)
 import Data.Time.Clock.POSIX
 import qualified Input
+import Control.Monad(filterM)
 data QuizAction = AllCards | FromDeck deriving (Show, Eq)
 
 allQuizActions :: [QuizAction]
@@ -45,6 +46,10 @@ quizDeck deck = do
 
 maybeQuiz :: Card -> IO Card
 maybeQuiz card = shouldQuizCard card >>= (\shouldQuiz -> if shouldQuiz then quizCard card else return card)
+
+cardsToQuiz :: [Deck] -> IO [Card]
+cardsToQuiz decks = filterM shouldQuizCard cards
+    where cards = allCards decks
     
 
 {-quizCards :: [Card] -> [Deck] -> IO [Deck]-}
@@ -76,13 +81,19 @@ getAnswerConfidence = do
         Just confidence -> if confidence `elem` [1 .. 5] then return confidence else getAnswerConfidence
         Nothing         -> getAnswerConfidence
 
-
-
-
 quizFromDeck :: Deck -> [Deck] -> IO [Deck]
 quizFromDeck deck decks = quizDeck deck >>= (\newDeck -> return $ replaceDeckNamed (dName deck) newDeck decks)
 
 getQuizAction :: [Deck] -> IO (Maybe QuizAction)
-getQuizAction decks = Input.getUserChoice allQuizActions
-    
-
+getQuizAction [] = do
+            printf $ "No decks, returning to menu" ++ "\n"
+            return Nothing
+getQuizAction decks = do
+    cardsToBeQuizzed <- cardsToQuiz decks
+    case cardsToBeQuizzed of
+        [] -> do
+            printf $ "No cards need to be quizzed at this time" ++ "\n" 
+            return Nothing
+        _  -> do
+            printf $ "What would you like to be quizzed on?" ++ "\n"
+            Input.getUserChoice allQuizActions

@@ -51,7 +51,9 @@ getRemoveAction :: [Deck] -> IO (Maybe RemoveAction)
 getRemoveAction [] = return Nothing
 getRemoveAction decks
     | all (null . dCards) decks = return $ Just RemoveDeck
-    | otherwise  = Input.getUserChoice allRemoveActions
+    | otherwise  = do
+        printf $ "What would you like to do?" ++ "\n"
+        Input.getUserChoice allRemoveActions
 
 allRemoveActions :: [RemoveAction]
 allRemoveActions = [RemoveDeck, RemoveFromDeck]
