@@ -1,7 +1,7 @@
 module Card where 
 import Display
 import Text.Printf(printf)
-data CardTracker = CardTracker {ctEF :: Float, ctN :: Int, ctTimeQuizzed :: Integer, ctLastResponseQuality :: Maybe Integer} deriving (Show, Read, Eq)
+data CardTracker = CardTracker {ctEF :: Float, ctN :: Int, ctTimeQuizzed :: Int, ctLastResponseQuality :: Maybe Int} deriving (Show, Read, Eq)
 
 data Card = Card {cardQuestion :: String, cardAnswer :: String, cardTracker :: CardTracker} deriving (Show, Read, Eq)
 

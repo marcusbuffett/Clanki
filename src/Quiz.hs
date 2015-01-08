@@ -6,8 +6,10 @@ import Display
 import Text.Printf(printf)
 import Safe(readMay)
 import Data.Time.Clock.POSIX
+import Data.Maybe(isJust, fromJust)
 import qualified Input
 import Control.Monad(filterM)
+import Data.List((\\), isInfixOf)
 data QuizAction = AllCards | FromDeck deriving (Show, Eq)
 
 allQuizActions :: [QuizAction]
@@ -62,10 +64,8 @@ quizCard :: Card -> IO Card
 quizCard card = do
     printf $ "Question : " ++ cardQuestion card ++ "\n"
     printf "Input your answer, then press enter to continue\n"
-    _ <- getLine
-    printf $ "Answer : " ++ cardAnswer card ++ "\n"
-    printf $ "Rate your answer, 0-5" ++ "\n"
-    confidence <- getAnswerConfidence
+    answer <- getLine
+    confidence <- getConfidence answer (cardAnswer card)
     let newEF = adjustEF (ctEF $ cardTracker card) confidence
     let oldTracker = cardTracker card
     let n = if confidence < 3 then 1 else ctN oldTracker + 1
@@ -73,13 +73,35 @@ quizCard card = do
     printf "\n"
     return $ card {cardTracker = oldTracker {ctEF = newEF, ctN = n, ctLastResponseQuality = Just confidence, ctTimeQuizzed = currentTime}}
 
-getAnswerConfidence :: IO Integer
-getAnswerConfidence = do
+
+getConfidence :: String -> String -> IO Int
+getConfidence answer correctAnswer
+    | isJust inferredConfidence = return $ fromJust inferredConfidence
+    | otherwise = do
+            printf $ "Correct answer : " ++ correctAnswer ++ "\n"
+            printf $ "Rate your answer on a scale from 0-5" ++ "\n"
+            promptConfidence
+    where
+    inferredConfidence = inferConfidence answer correctAnswer
+
+inferConfidence :: String -> String -> Maybe Int
+inferConfidence answer correctAnswer
+    | rightAnswer =
+        case answer \\ correctAnswer of
+            "!" -> Just 5
+            "." -> Just 4
+            "?" -> Just 3
+            _   -> Nothing
+    | otherwise   = Nothing
+        where rightAnswer = correctAnswer `isInfixOf` answer
+
+promptConfidence :: IO Int
+promptConfidence = do
     input <- getLine 
-    let readInput = readMay input :: Maybe Integer
+    let readInput = readMay input :: Maybe Int
     case readInput of
-        Just confidence -> if confidence `elem` [1 .. 5] then return confidence else getAnswerConfidence
-        Nothing         -> getAnswerConfidence
+        Just confidence -> if confidence `elem` [1 .. 5] then return confidence else promptConfidence
+        Nothing         -> promptConfidence
 
 quizFromDeck :: Deck -> [Deck] -> IO [Deck]
 quizFromDeck deck decks = quizDeck deck >>= (\newDeck -> return $ replaceDeckNamed (dName deck) newDeck decks)
