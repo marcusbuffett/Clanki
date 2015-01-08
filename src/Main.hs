@@ -5,9 +5,11 @@ import Input
 import Remove
 import Quiz
 import Text.Printf(printf)
+import Display
+import Data.List(intercalate)
+import System.Environment(getArgs)
 import System.Directory(doesFileExist)
 
-import Display
 data Action = Quiz | Add | Remove | Show | Quit deriving (Show, Eq, Ord, Enum)
 
 instance Display Action where
@@ -57,11 +59,32 @@ loadData = do
 saveData :: [Deck] -> IO ()
 saveData decks = writeFile fileName (show decks)
 
+startWithArgs :: [String] -> [Deck] -> IO [Deck]
+startWithArgs args decks
+    | null args = mainLoop decks
+    | "--help" `elem` args || "-h" `elem` args = 
+        do
+            displayHelp
+            return decks
+    | "--list" `elem` args || "-l" `elem` args =
+        do
+            displayList decks
+            return decks
+    | otherwise = mainLoop decks
+
+displayHelp :: IO ()
+displayHelp = do
+    printf $ "OPTIONS:" ++ "\n"
+    printf $ "--list  -l              List available decks in default directory" ++ "\n"
+    printf $ "--stats -s              Show some stats about the decks" ++ "\n"
+    printf $ "--help -h               Show this help" ++ "\n"
+            
+
 
 main :: IO ()
 main = do
     decks <- loadData
-    newDecks <- mainLoop decks
+    args <- getArgs
+    newDecks <- startWithArgs args decks
     saveData newDecks
-    return ()
 
