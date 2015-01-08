@@ -22,6 +22,6 @@ executable clanki
   main-is:             Main.hs
   other-modules:       Add, Quiz, Remove, Display, Card, Decks, Input, Tracker
   -- other-extensions:    
-  build-depends:       base >=4.7 && <4.8, time >= 1.4.2, directory >= 1.2.1.0, safe
+  build-depends:       base >=4.6 && <4.8, time >= 1.4.2, directory >= 1.2.1.0, safe
   hs-source-dirs:      src
   default-language:    Haskell2010
