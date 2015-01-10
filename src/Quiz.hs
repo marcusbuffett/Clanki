@@ -88,9 +88,9 @@ inferConfidence :: String -> String -> Maybe Int
 inferConfidence answer correctAnswer
     | rightAnswer =
         case answer \\ correctAnswer of
-            "!" -> Just 5
-            "." -> Just 4
-            "?" -> Just 3
+            {-"!" -> Just 5-}
+            {-"." -> Just 4-}
+            {-"?" -> Just 3-}
             _   -> Nothing
     | otherwise   = Nothing
         where rightAnswer = correctAnswer `isInfixOf` answer
