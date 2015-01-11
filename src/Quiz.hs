@@ -1,15 +1,15 @@
 module Quiz where
 import Card
-import Decks
 import Tracker
 import Display
 import Text.Printf(printf)
 import Safe(readMay)
 import Data.Time.Clock.POSIX
-import Data.Maybe(isJust, fromJust)
+import Data.Maybe(isJust)
 import qualified Input
 import Control.Monad(filterM)
 import Data.List((\\), isInfixOf)
+{-import StatTracker-}
 data QuizAction = AllCards | FromDeck deriving (Show, Eq)
 
 allQuizActions :: [QuizAction]
@@ -19,67 +19,72 @@ instance Display QuizAction where
     display AllCards = "Quiz from all cards"
     display FromDeck = "Quiz from a deck"
 
-quizLoop :: [Deck] -> IO [Deck]
-quizLoop decks = do
-    quizAction <- getQuizAction decks
-    runQuizAction quizAction decks
+quizLoop :: [Card] -> IO [Card]
+quizLoop cards = do
+    quizAction <- getQuizAction cards
+    runQuizAction quizAction cards
 
-anyCardsToQuiz :: [Deck] -> IO Bool
-anyCardsToQuiz decks = shouldQuizList >>= return . (True `elem`)
-    where shouldQuizList = sequence [shouldQuizCard card | card <- allCards decks] 
+anyCardsToQuiz :: [Card] -> IO Bool
+anyCardsToQuiz cards = shouldQuizList >>= return . (True `elem`)
+    where shouldQuizList = sequence [shouldQuizCard card | card <- cards] 
 
-runQuizAction :: Maybe QuizAction -> [Deck] -> IO [Deck]
-runQuizAction (Just AllCards) decks = quizDecks decks decks
-runQuizAction (Just FromDeck) decks = do
-        input <- Input.getUserChoice decks
+runQuizAction :: Maybe QuizAction -> [Card] -> IO [Card]
+runQuizAction (Just AllCards) cards = cardsToQuiz cards >>= quizCards
+runQuizAction (Just FromDeck) cards = do
+        input <- Input.getUserChoiceStr $ allDeckNames cards
         case input of
-            Just deck -> quizFromDeck deck decks
-            Nothing   -> return decks
+            Just deckName -> quizFromDeck deckName cards
+            Nothing   -> return cards
 runQuizAction Nothing decks = return decks
 
-quizDecks :: [Deck] -> [Deck] -> IO [Deck]
-quizDecks decksToQuiz allDecks = sequence $ map (\deck -> if deck `elem` decksToQuiz then quizDeck deck else return deck) allDecks
-
-quizDeck :: Deck -> IO Deck
-quizDeck deck = do
-    newCards <- sequence [maybeQuiz card | card <- dCards deck]
-    return deck {dCards = newCards}
+{-quizCards :: [Card] -> IO [Card]-}
+{-quizCards cards = do-}
+    {-newCards <- sequence [maybeQuiz card | card <- cards]-}
+    {-return cards-}
 
 
-maybeQuiz :: Card -> IO Card
-maybeQuiz card = shouldQuizCard card >>= (\shouldQuiz -> if shouldQuiz then quizCard card else return card)
+{-maybeQuiz :: Card -> IO Card-}
+{-maybeQuiz card = shouldQuizCard card >>= (\shouldQuiz -> if shouldQuiz then quizCard card else return card)-}
 
-cardsToQuiz :: [Deck] -> IO [Card]
-cardsToQuiz decks = filterM shouldQuizCard cards
-    where cards = allCards decks
-    
+cardsToQuiz :: [Card] -> IO [Card]
+cardsToQuiz cards = filterM shouldQuizCard cards
 
-{-quizCards :: [Card] -> [Deck] -> IO [Deck]-}
-{-quizCards cards decks = return decks-}
-    {-newTrackers <- sequence [quizCard card tracker | card <- cards, let tracker = trackerOfCard card (cardTrackers decks)]-}
-    {--- TODO: replace trackers, but not all -}
-    {-return $ decks {cardTrackers = newTrackers}-}
+quizCards :: [Card] -> IO [Card]
+quizCards []    = return []
+quizCards cards = do
+    quizResult <- quizCard headCard
+    case quizResult of
+        Nothing -> return cards
+        Just updatedCard -> do
+            newCards <- quizCards restOfCards 
+            return $ updatedCard:newCards
+    where
+    headCard = head cards
+    restOfCards = tail cards
 
-quizCard :: Card -> IO Card
+quizCard :: Card -> IO (Maybe Card)
 quizCard card = do
     printf $ "Question : " ++ cardQuestion card ++ "\n"
     printf "Input your answer, then press enter to continue\n"
     answer <- getLine
     confidence <- getConfidence answer (cardAnswer card)
-    let newEF = adjustEF (ctEF $ cardTracker card) confidence
-    let oldTracker = cardTracker card
-    let n = if confidence < 3 then 1 else ctN oldTracker + 1
-    currentTime <- fmap round getPOSIXTime
-    printf "\n"
-    return $ card {cardTracker = oldTracker {ctEF = newEF, ctN = n, ctLastResponseQuality = Just confidence, ctTimeQuizzed = currentTime}}
+    case confidence of
+        Just conf -> do
+            let newEF = adjustEF (ctEF $ cardTracker card) conf
+            let oldTracker = cardTracker card
+            let n = if conf < 3 then 1 else ctN oldTracker + 1
+            currentTime <- fmap round getPOSIXTime
+            printf "\n"
+            {-let newST = updateStatTracker st confidence-}
+            return . Just $ card {cardTracker = oldTracker {ctEF = newEF, ctN = n, ctLastResponseQuality = Just conf, ctTimeQuizzed = currentTime}}
+        Nothing   -> return Nothing 
 
-
-getConfidence :: String -> String -> IO Int
+getConfidence :: String -> String -> IO (Maybe Int)
 getConfidence answer correctAnswer
-    | isJust inferredConfidence = return $ fromJust inferredConfidence
+    | isJust inferredConfidence = return $ inferredConfidence
     | otherwise = do
             printf $ "Correct answer : " ++ correctAnswer ++ "\n"
-            printf $ "Rate your answer on a scale from 0-5" ++ "\n"
+            printf $ "Rate your answer on a scale from 0-5, <Enter> to stop quizzing" ++ "\n"
             promptConfidence
     where
     inferredConfidence = inferConfidence answer correctAnswer
@@ -95,18 +100,18 @@ inferConfidence answer correctAnswer
     | otherwise   = Nothing
         where rightAnswer = correctAnswer `isInfixOf` answer
 
-promptConfidence :: IO Int
+promptConfidence :: IO (Maybe Int)
 promptConfidence = do
     input <- getLine 
     let readInput = readMay input :: Maybe Int
     case readInput of
-        Just confidence -> if confidence `elem` [1 .. 5] then return confidence else promptConfidence
-        Nothing         -> promptConfidence
+        Just confidence -> if confidence `elem` [1 .. 5] then return $ Just confidence else promptConfidence
+        Nothing         -> return Nothing
 
-quizFromDeck :: Deck -> [Deck] -> IO [Deck]
-quizFromDeck deck decks = quizDeck deck >>= (\newDeck -> return $ replaceDeckNamed (dName deck) newDeck decks)
+quizFromDeck :: String -> [Card] -> IO [Card]
+quizFromDeck deckName cards = quizCards $ filter (\card -> cardDeck card == deckName) cards
 
-getQuizAction :: [Deck] -> IO (Maybe QuizAction)
+getQuizAction :: [Card] -> IO (Maybe QuizAction)
 getQuizAction [] = do
             printf $ "No decks, returning to menu" ++ "\n"
             return Nothing

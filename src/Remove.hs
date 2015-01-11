@@ -1,7 +1,8 @@
 module Remove where
-import Decks
 import Display
+import Card
 import Text.Printf(printf)
+import Data.List(delete)
 import qualified Input
 data RemoveAction = RemoveDeck | RemoveFromDeck deriving (Show, Eq)
 
@@ -9,49 +10,47 @@ instance Display RemoveAction where
     display RemoveDeck = "Remove a deck"
     display RemoveFromDeck = "Remove cards from a deck"
 
-removeLoop :: [Deck] -> IO [Deck]
-removeLoop decks = do
-    removeAction <- getRemoveAction decks
-    runRemoveAction removeAction decks
+removeLoop :: [Card] -> IO [Card]
+removeLoop cards = do
+    removeAction <- getRemoveAction cards
+    runRemoveAction removeAction cards
 
-runRemoveAction :: Maybe RemoveAction -> [Deck] -> IO [Deck]
-runRemoveAction (Just RemoveDeck) decks     = removeDeck decks
-runRemoveAction (Just RemoveFromDeck) decks = removeFromDeck decks
-runRemoveAction Nothing decks               = return decks
+runRemoveAction :: Maybe RemoveAction -> [Card] -> IO [Card]
+runRemoveAction (Just RemoveDeck) cards     = removeDeck cards
+runRemoveAction (Just RemoveFromDeck) cards = removeFromDeck cards
+runRemoveAction Nothing cards               = return cards
 
-removeDeck :: [Deck] -> IO [Deck]
-removeDeck decks = do
+removeDeck :: [Card] -> IO [Card]
+removeDeck cards = do
     printf $ "Choose what deck to remove" ++ "\n"
-    input <- Input.getUserChoice decks
+    
+    input <- Input.getUserChoiceStr $ allDeckNames cards
     case input of 
-        Just deck -> return $ filter (/= deck) decks
-        Nothing   -> return decks
+        Just deckName -> return $ filter (\card -> cardDeck card /= deckName) cards
+        Nothing   -> return cards
 
 
-removeFromDeck :: [Deck] -> IO [Deck]
-removeFromDeck decks = do
-    chosenDeck <- Input.getUserChoice $ filter (not . null . dCards) decks
-    case chosenDeck of
-        Just deck -> do
-                        updatedDeck <- removeFromDeckLoop deck
-                        let newDecks = replaceDeckNamed (dName updatedDeck) updatedDeck decks 
-                        return newDecks 
-        Nothing -> return decks
+removeFromDeck :: [Card] -> IO [Card]
+removeFromDeck cards = do
+    chosenDeckName <- Input.getUserChoiceStr $ allDeckNames cards
+    case chosenDeckName of
+        Just deckName -> do
+                        updatedCards <- removeFromDeckLoop deckName (cardsInDeck deckName cards)
+                        let newCards = replaceCardsInDeck deckName updatedCards cards
+                        return newCards 
+        Nothing -> return cards
 
-removeFromDeckLoop :: Deck -> IO Deck
-removeFromDeckLoop deck = do
-    input <- Input.getUserChoice $ dCards deck
+removeFromDeckLoop :: String -> [Card] -> IO [Card]
+removeFromDeckLoop     _        [] = return []
+removeFromDeckLoop deckName cards = do
+    input <- Input.getUserChoice cards
     case input of 
-        Just card  -> if not $ null (dCards deck)
-                        then removeFromDeckLoop $ removeCardFromDeck card deck
-                        else return deck
-        Nothing    -> return deck
+        Just card  -> removeFromDeckLoop deckName $ delete card cards
+        Nothing    -> return cards
 
-getRemoveAction :: [Deck] -> IO (Maybe RemoveAction)
+getRemoveAction :: [Card] -> IO (Maybe RemoveAction)
 getRemoveAction [] = return Nothing
-getRemoveAction decks
-    | all (null . dCards) decks = return $ Just RemoveDeck
-    | otherwise  = do
+getRemoveAction decks = do
         printf $ "What would you like to do?" ++ "\n"
         Input.getUserChoice allRemoveActions
 

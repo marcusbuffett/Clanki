@@ -1,6 +1,6 @@
 module Add where
 import Card
-import Decks
+{-import Decks-}
 import Display
 import Text.Printf(printf)
 import qualified Input
@@ -10,64 +10,60 @@ instance Display AddAction where
     display NewDeck = "New deck"
     display ToDeck  = "Add to deck"
 
-addLoop :: [Deck] -> IO [Deck]
+addLoop :: [Card] -> IO [Card]
 addLoop decks = do
     addAction <- getAddAction decks
     runAddAction addAction decks
 
-runAddAction :: Maybe AddAction -> [Deck] -> IO [Deck]
+runAddAction :: Maybe AddAction -> [Card] -> IO [Card]
 runAddAction = maybe return newOrTo
   where
       newOrTo NewDeck = newDeck
       newOrTo ToDeck  = toDeck
 
-newDeck :: [Deck] -> IO [Deck]
-newDeck decks = do
+newDeck :: [Card] -> IO [Card]
+newDeck cards = do
     printf $ "Please input the name of the new deck" ++ "\n"
     deckName <- getLine
     case deckName of 
-        "" -> return decks
-        _  -> if any (\deck -> dName deck == deckName) decks
+        "" -> return cards
+        _  -> if any (\card -> cardDeck card == deckName) cards
                 then do
                   printf $ "Invalid input, already a deck with that name" ++ "\n"
-                  newDeck decks
+                  newDeck cards
                 else 
-                  return $ addDeckWithName deckName decks
+                  toDeckLoop deckName cards
 
-addDeckWithName :: String -> [Deck] -> [Deck]
-addDeckWithName name decks = decks ++ [Deck {dCards = [], dName = name}]
-
-toDeck :: [Deck] -> IO [Deck]
-toDeck decks = do
-    chosenDeck <- Input.getUserChoice decks
-    case chosenDeck of
-        Just deck -> do
-                        deckWithNewItems <- toDeckLoop deck
-                        let newDecks = replaceDeckNamed (dName deck) deckWithNewItems decks
-                        return newDecks
-        Nothing -> return decks
+toDeck :: [Card] -> IO [Card]
+toDeck cards = do
+    chosenDeckName <- Input.getUserChoiceStr $ allDeckNames cards
+    case chosenDeckName of
+        Just deckName -> do
+                        newCards <- toDeckLoop deckName cards
+                        return newCards
+        Nothing -> return cards
 
 
-toDeckLoop :: Deck -> IO Deck
-toDeckLoop deck = do
+toDeckLoop :: String -> [Card] -> IO [Card]
+toDeckLoop deckName cards = do
     printf $ "Please input the question, enter to stop adding" ++ "\n"
     question <- getLine
     case question of 
         "" -> do
                 printf $ "You wish to stop adding" ++ "\n"
-                return deck
+                return cards
         _  -> do
                 printf $ "Please input the answer" ++ "\n"
                 answer <- getLine
                 case answer of
                     "" -> do
                         printf $ "You wish to stop adding" ++ "\n"
-                        return deck
+                        return cards
                     _  -> do
-                        let card = newCard question answer
-                        toDeckLoop (addCardToDeck card deck)
+                        let card = newCard question answer deckName
+                        toDeckLoop deckName (card:cards)
 
-getAddAction :: [Deck] -> IO (Maybe AddAction)
+getAddAction :: [Card] -> IO (Maybe AddAction)
 getAddAction [] = return $ Just NewDeck
 getAddAction _  = do
     printf $ "What would you like to do?" ++ "\n"

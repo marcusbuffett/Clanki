@@ -1,9 +1,10 @@
 module Main where
-import Decks
+{-import Decks-}
 import Add
 import Input
 import Remove
 import Quiz
+import Card
 import Text.Printf(printf)
 import Display
 import Data.List(intercalate)
@@ -22,17 +23,17 @@ getAction :: IO (Maybe Action)
 getAction = do
     Input.getUserChoice allActions
 
-runAction :: Maybe Action -> [Deck] -> IO [Deck]
-runAction (Just Quit) decks   = return decks
-runAction (Just Add) decks    = addLoop decks   >>= mainLoop
-runAction (Just Quiz) decks   = quizLoop decks  >>= mainLoop
-runAction (Just Remove) decks = removeLoop decks >>= mainLoop
-runAction (Just Show) decks   = do
-    printf $ show decks ++ "\n"
-    mainLoop decks
-runAction Nothing decks       = do
+runAction :: Maybe Action -> [Card] -> IO [Card]
+runAction (Just Quit) cards   = return cards
+runAction (Just Add) cards    = addLoop cards   >>= mainLoop
+runAction (Just Quiz) cards   = quizLoop cards  >>= mainLoop
+runAction (Just Remove) cards = removeLoop cards >>= mainLoop
+runAction (Just Show) cards   = do
+    printf $ show cards ++ "\n"
+    mainLoop cards
+runAction Nothing cards       = do
     printf $ "Invalid input" ++ "\n"
-    mainLoop decks
+    mainLoop cards
 
 {-showDecks decks = printf $ unlines $ map display decks-}
 
@@ -40,26 +41,26 @@ fileName :: String
 fileName = "data.clanki"
 
 
-mainLoop :: [Deck] -> IO [Deck]
+mainLoop :: [Card] -> IO [Card]
 mainLoop decks = do
     action <- getAction
     runAction action decks
 
 
-loadData :: IO [Deck]
+loadData :: IO [Card]
 loadData = do
     fileExists <- doesFileExist fileName
     if fileExists
         then do
         x <- readFile fileName
-        return (read x :: [Deck])
+        return (read x :: [Card])
         else return []
 
 
-saveData :: [Deck] -> IO ()
+saveData :: [Card] -> IO ()
 saveData decks = writeFile fileName (show decks)
 
-startWithArgs :: [String] -> [Deck] -> IO [Deck]
+startWithArgs :: [String] -> [Card] -> IO [Card]
 startWithArgs args decks
     | null args = mainLoop decks
     | "--help" `elem` args || "-h" `elem` args = 
