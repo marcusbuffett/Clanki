@@ -12,5 +12,4 @@ updateStatTracker st confidence = st {stTimesQuizzed = oldTimesQuizzed + 1, stRe
     oldCounters     = stResponseCounters st
 
 updateResponseCounters :: [Int] -> Int -> [Int]
---TODO: Make this actually do something
-updateResponseCounters counters confidence = counters
+updateResponseCounters counters confidence = [newCount | i <- [0..5], let newCount = counters !! i + (if confidence == i then 1 else 0)]
