@@ -29,7 +29,9 @@ runAction (Just Add) cards    = addLoop cards   >>= mainLoop
 runAction (Just Quiz) cards   = quizLoop cards  >>= mainLoop
 runAction (Just Remove) cards = removeLoop cards >>= mainLoop
 runAction (Just Show) cards   = do
-    printf $ show cards ++ "\n"
+    let deckNames = allDeckNames cards
+    let cardsDisplayed = intercalate "\n" $ map (\dName -> displayCardsInDeck dName cards) deckNames
+    printf $ cardsDisplayed ++ "\n"
     mainLoop cards
 runAction Nothing cards       = do
     printf $ "Invalid input" ++ "\n"
