@@ -1,6 +1,7 @@
 module Quiz where
 import Card
 import Tracker
+import StatTracker
 import Display
 import Text.Printf(printf)
 import Safe(readMay)
@@ -8,6 +9,7 @@ import Data.Time.Clock.POSIX
 import Data.Maybe(isJust)
 import qualified Input
 import Control.Monad(filterM)
+import System.IO(hSetBuffering, BufferMode(NoBuffering, LineBuffering), stdin, stdout, hFlush)
 import Data.List((\\), isInfixOf)
 {-import StatTracker-}
 data QuizAction = AllCards | FromDeck deriving (Show, Eq)
@@ -56,8 +58,14 @@ quizCards cards = do
     case quizResult of
         Nothing -> return cards
         Just updatedCard -> do
-            newCards <- quizCards restOfCards 
-            return $ updatedCard:newCards
+            needsRequizzing <- shouldQuizCard updatedCard
+            if needsRequizzing
+                then do
+                    newCards <- quizCards $ restOfCards ++ [updatedCard]
+                    return $ updatedCard:newCards
+                else do
+                    newCards <- quizCards restOfCards 
+                    return $ updatedCard:newCards
     where
     headCard = head cards
     restOfCards = tail cards
@@ -65,7 +73,8 @@ quizCards cards = do
 quizCard :: Card -> IO (Maybe Card)
 quizCard card = do
     printf $ "Question : " ++ cardQuestion card ++ "\n"
-    printf "Input your answer, then press enter to continue\n"
+    printf "Answer : "
+    hFlush stdout
     answer <- getLine
     confidence <- getConfidence answer (cardAnswer card)
     case confidence of
@@ -74,9 +83,11 @@ quizCard card = do
             let oldTracker = cardTracker card
             let n = if conf < 3 then 1 else ctN oldTracker + 1
             currentTime <- fmap round getPOSIXTime
-            printf "\n"
-            {-let newST = updateStatTracker st confidence-}
-            return . Just $ card {cardTracker = oldTracker {ctEF = newEF, ctN = n, ctLastResponseQuality = Just conf, ctTimeQuizzed = currentTime}}
+            printf "\n\n"
+            let st = cardStatTracker card
+            let newST = updateStatTracker st conf
+            let newTracker = oldTracker {ctEF = newEF, ctN = n, ctLastResponseQuality = Just conf, ctTimeQuizzed = currentTime}
+            return . Just $ card {cardTracker = newTracker, cardStatTracker = newST}
         Nothing   -> return Nothing 
 
 getConfidence :: String -> String -> IO (Maybe Int)
@@ -84,7 +95,8 @@ getConfidence answer correctAnswer
     | isJust inferredConfidence = return $ inferredConfidence
     | otherwise = do
             printf $ "Correct answer : " ++ correctAnswer ++ "\n"
-            printf $ "Rate your answer on a scale from 0-5, <Enter> to stop quizzing" ++ "\n"
+            printf $ "Rate your answer on a scale from 0-5, <Enter> to stop quizzing : "
+            hFlush stdout
             promptConfidence
     where
     inferredConfidence = inferConfidence answer correctAnswer
@@ -102,10 +114,14 @@ inferConfidence answer correctAnswer
 
 promptConfidence :: IO (Maybe Int)
 promptConfidence = do
-    input <- getLine 
+    hSetBuffering stdin NoBuffering
+    hSetBuffering stdout NoBuffering
+    input <- fmap (:[]) getChar 
     let readInput = readMay input :: Maybe Int
+    hSetBuffering stdin LineBuffering
+    hSetBuffering stdout LineBuffering
     case readInput of
-        Just confidence -> if confidence `elem` [1 .. 5] then return $ Just confidence else promptConfidence
+        Just confidence -> if confidence `elem` [0 .. 5] then return $ Just confidence else promptConfidence
         Nothing         -> return Nothing
 
 quizFromDeck :: String -> [Card] -> IO [Card]

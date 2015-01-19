@@ -3,7 +3,7 @@ module StatTracker where
 data StatTracker = StatTracker {stTimesQuizzed :: Int, stResponseCounters :: [Int]} deriving (Show, Eq, Read)
 
 newStatTracker :: StatTracker
-newStatTracker = StatTracker {stTimesQuizzed = 0, stResponseCounters = replicate 0 6}
+newStatTracker = StatTracker {stTimesQuizzed = 0, stResponseCounters = replicate 6 0}
 
 updateStatTracker :: StatTracker -> Int -> StatTracker
 updateStatTracker st confidence = st {stTimesQuizzed = oldTimesQuizzed + 1, stResponseCounters = updateResponseCounters oldCounters confidence}
