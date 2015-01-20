@@ -89,10 +89,18 @@ startWithArgs args cards
             else do
                 cardsToQuiz <- filterM shouldQuizCard (cardsInDeck (head args) cards)
                 quizSomeCards cardsToQuiz cards
+    | head args == "-add" = do
+        let deckName = args !! 1
+        let question = args !! 2
+        let answer   = args !! 3
+        if length args >= 5 && args !! 4 == "-2"
+            then return $ cards ++ [newCard question answer deckName] ++ [newCard answer question deckName]
+            else return $ cards ++ [newCard question answer deckName]
     | otherwise = return cards
     where
+        isDeckName str = hasDeckNamed str cards
         firstOptionIsNum = isJust (readMay (head args) :: Maybe Int)
-        firstOptionIsDeck = hasDeckNamed (head args) cards
+        firstOptionIsDeck = isDeckName (head args)
         secondOptionIsNum = length args > 1 && isJust (readMay (args !! 1) :: Maybe Int)
 
 
