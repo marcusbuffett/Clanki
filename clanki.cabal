@@ -2,7 +2,7 @@
 --  see http://haskell.org/cabal/users-guide/
 
 name:                clanki
-version:             1.0.7
+version:             1.2.0
 synopsis:            Command-line spaced-repetition software
 description:         Command-line spaced-repetition learning software. CL (command line) + Anki (popular spaced-repetition software) = Clanki. Usage is fairly simple, just follow the instructions after running the program. Add a deck, add cards to the deck, then quiz whenever possible. The program will determine what cards need to be reviewed, using the Super Memo 2 algorithm.
 license:             MIT
@@ -20,7 +20,7 @@ cabal-version:       >=1.10
 
 executable clanki
   main-is:             Main.hs
-  --other-modules:       Add, Quiz, Remove, Display, Card, Decks, Input, Tracker
+  other-modules:       Add, Quiz, Remove, Display, Card, Input, Tracker, StatTracker
   -- other-extensions:    
   build-depends:       base >=4.6 && <4.8, time >= 1.4.2, directory >= 1.2.1.0, safe
   hs-source-dirs:      src
