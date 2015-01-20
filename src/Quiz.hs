@@ -1,4 +1,4 @@
-module Quiz where
+module Quiz(quizLoop, quizCards, quizFromDeck, quizSomeCards) where
 import Card
 import Tracker
 import StatTracker
@@ -10,7 +10,7 @@ import Data.Maybe(isJust)
 import qualified Input
 import Control.Monad(filterM)
 import System.IO(hSetBuffering, BufferMode(NoBuffering, LineBuffering), stdin, stdout, hFlush)
-import Data.List((\\), isInfixOf)
+import Data.List((\\), isInfixOf, delete)
 {-import StatTracker-}
 data QuizAction = AllCards | FromDeck deriving (Show, Eq)
 
@@ -31,7 +31,7 @@ anyCardsToQuiz cards = shouldQuizList >>= return . (True `elem`)
     where shouldQuizList = sequence [shouldQuizCard card | card <- cards] 
 
 runQuizAction :: Maybe QuizAction -> [Card] -> IO [Card]
-runQuizAction (Just AllCards) cards = cardsToQuiz cards >>= quizCards
+runQuizAction (Just AllCards) cards = cardsToQuiz cards >>= (\someCards -> quizSomeCards someCards cards)
 runQuizAction (Just FromDeck) cards = do
         input <- Input.getUserChoiceStr $ allDeckNames cards
         case input of
@@ -53,19 +53,23 @@ cardsToQuiz cards = filterM shouldQuizCard cards
 
 quizCards :: [Card] -> IO [Card]
 quizCards []    = return []
-quizCards cards = do
+quizCards cards = quizSomeCards cards cards
+
+quizSomeCards :: [Card] -> [Card] -> IO [Card]
+quizSomeCards cards allCards
+    | null cards = return allCards
+    | otherwise = do
     quizResult <- quizCard headCard
     case quizResult of
-        Nothing -> return cards
+        Nothing -> return allCards
         Just updatedCard -> do
             needsRequizzing <- shouldQuizCard updatedCard
             if needsRequizzing
                 then do
-                    newCards <- quizCards $ restOfCards ++ [updatedCard]
-                    return $ updatedCard:newCards
+                    quizSomeCards (restOfCards ++ [updatedCard]) allCards
                 else do
-                    newCards <- quizCards restOfCards 
-                    return $ updatedCard:newCards
+                    let newAllCards = (updatedCard:) . delete headCard $ allCards 
+                    quizSomeCards (restOfCards) newAllCards
     where
     headCard = head cards
     restOfCards = tail cards
@@ -125,7 +129,9 @@ promptConfidence = do
         Nothing         -> return Nothing
 
 quizFromDeck :: String -> [Card] -> IO [Card]
-quizFromDeck deckName cards = quizCards $ filter (\card -> cardDeck card == deckName) cards
+quizFromDeck deckName cards = quizSomeCards deckCards cards
+    where
+    deckCards = filter (\card -> cardDeck card == deckName) cards
 
 getQuizAction :: [Card] -> IO (Maybe QuizAction)
 getQuizAction [] = do

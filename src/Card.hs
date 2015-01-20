@@ -40,3 +40,12 @@ displayCardsInDeck deckName cards =
 
 displayListCards :: [Card] -> String
 displayListCards cards = intercalate "\n" . map display $ cards
+
+displayAllDecks :: [Card] -> IO ()
+displayAllDecks cards = do
+    let deckNames = allDeckNames cards
+    let cardsDisplayed = intercalate "\n" $ map (\dName -> displayCardsInDeck dName cards) deckNames
+    printf $ cardsDisplayed ++ "\n"
+
+hasDeckNamed :: String -> [Card] -> Bool
+hasDeckNamed deckName cards = not . null $ filter (\card -> cardDeck card == deckName) cards

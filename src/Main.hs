@@ -5,11 +5,14 @@ import Input
 import Remove
 import Quiz
 import Card
+import Tracker
 import Text.Printf(printf)
 import Display
-import Data.List(intercalate)
 import System.Environment(getArgs)
 import System.Directory(doesFileExist)
+import Data.Maybe(isJust)
+import Safe(readMay)
+import Control.Monad(filterM)
 
 data Action = Quiz | Add | Remove | Show | Quit deriving (Show, Eq, Ord, Enum)
 
@@ -23,31 +26,27 @@ getAction :: IO (Maybe Action)
 getAction = do
     Input.getUserChoice allActions
 
-runAction :: Maybe Action -> [Card] -> IO [Card]
-runAction (Just Quit) cards   = return cards
+runAction :: Maybe Action -> [Card] -> IO ()
+runAction (Just Quit) cards   = do
+    saveData cards
+    return ()
 runAction (Just Add) cards    = addLoop cards   >>= mainLoop
 runAction (Just Quiz) cards   = quizLoop cards  >>= mainLoop
 runAction (Just Remove) cards = removeLoop cards >>= mainLoop
 runAction (Just Show) cards   = do
-    let deckNames = allDeckNames cards
-    let cardsDisplayed = intercalate "\n" $ map (\dName -> displayCardsInDeck dName cards) deckNames
-    printf $ cardsDisplayed ++ "\n"
+    displayAllDecks cards
     mainLoop cards
 runAction Nothing cards       = do
     printf $ "Invalid input" ++ "\n"
     mainLoop cards
 
-{-showDecks decks = printf $ unlines $ map display decks-}
-
 fileName :: String
 fileName = "data.clanki"
 
-
-mainLoop :: [Card] -> IO [Card]
+mainLoop :: [Card] -> IO ()
 mainLoop decks = do
     action <- getAction
     runAction action decks
-
 
 loadData :: IO [Card]
 loadData = do
@@ -63,17 +62,39 @@ saveData :: [Card] -> IO ()
 saveData decks = writeFile fileName (show decks)
 
 startWithArgs :: [String] -> [Card] -> IO [Card]
-startWithArgs args decks
-    | null args = mainLoop decks
+startWithArgs args cards
+    | null args = return cards
     | "--help" `elem` args || "-h" `elem` args = 
         do
             displayHelp
-            return decks
+            return cards
     | "--list" `elem` args || "-l" `elem` args =
         do
-            displayList decks
-            return decks
-    | otherwise = mainLoop decks
+            displayAllDecks cards
+            return cards
+    {-| "--stats" `elem` args || "-s" `elem` args =-}
+        {-do-}
+            {-displayList decks-}
+            {-return decks-}
+    | firstOptionIsNum = do
+        let numOfCardsToQuiz = read (head args) :: Int
+        quizSomeCards (take numOfCardsToQuiz cards) cards
+    | firstOptionIsDeck = do
+        if secondOptionIsNum
+            then do
+                let numOfCardsToQuiz = read $ args !! 1
+                let deckCards = cardsInDeck (head args) cards
+                cardsToQuiz <- filterM shouldQuizCard (take numOfCardsToQuiz deckCards)
+                quizSomeCards cardsToQuiz cards
+            else do
+                cardsToQuiz <- filterM shouldQuizCard (cardsInDeck (head args) cards)
+                quizSomeCards cardsToQuiz cards
+    | otherwise = return cards
+    where
+        firstOptionIsNum = isJust (readMay (head args) :: Maybe Int)
+        firstOptionIsDeck = hasDeckNamed (head args) cards
+        secondOptionIsNum = length args > 1 && isJust (readMay (args !! 1) :: Maybe Int)
+
 
 displayHelp :: IO ()
 displayHelp = do
@@ -81,13 +102,12 @@ displayHelp = do
     printf $ "--list  -l              List available decks in default directory" ++ "\n"
     printf $ "--stats -s              Show some stats about the decks" ++ "\n"
     printf $ "--help -h               Show this help" ++ "\n"
-            
-
 
 main :: IO ()
 main = do
-    decks <- loadData
+    cards <- loadData
     args <- getArgs
-    newDecks <- startWithArgs args decks
-    saveData newDecks
+    newCards <- startWithArgs args cards
+    mainLoop newCards
 
+    
