@@ -1,5 +1,4 @@
 module Main where
-{-import Decks-}
 import Add
 import Input
 import Remove
@@ -13,22 +12,24 @@ import System.Directory(doesFileExist)
 import Data.Maybe(isJust)
 import Safe(readMay)
 import Control.Monad(filterM)
+import qualified System.IO.Strict as SIO
 
 data Action = Quiz | Add | Remove | Show | Quit deriving (Show, Eq, Ord, Enum)
 
 instance Display Action where
-    display act = show act
+    display = show 
 
 allActions :: [Action]
 allActions = [Quiz ..]
 
 getAction :: IO (Maybe Action)
-getAction = do
-    Input.getUserChoice allActions
+getAction = Input.getUserChoice allActions
 
 runAction :: Maybe Action -> [Card] -> IO ()
 runAction (Just Quit) cards   = do
+    printf "before \n"
     saveData cards
+    printf "after \n"
     return ()
 runAction (Just Add) cards    = addLoop cards   >>= mainLoop
 runAction (Just Quiz) cards   = quizLoop cards  >>= mainLoop
@@ -39,6 +40,9 @@ runAction (Just Show) cards   = do
 runAction Nothing cards       = do
     printf $ "Invalid input" ++ "\n"
     mainLoop cards
+
+{-fileHandle :: IO Handle-}
+{-fileHandle = openFile "data.clanki" ReadWriteMode-}
 
 fileName :: String
 fileName = "data.clanki"
@@ -53,8 +57,8 @@ loadData = do
     fileExists <- doesFileExist fileName
     if fileExists
         then do
-        x <- readFile fileName
-        return (read x :: [Card])
+        x <- SIO.readFile fileName
+        return $ read x
         else return []
 
 
@@ -79,10 +83,12 @@ startWithArgs args cards
     | firstOptionIsNum = do
         let numOfCardsToQuiz = read (head args) :: Int
         quizSomeCards (take numOfCardsToQuiz cards) cards
-    | firstOptionIsDeck = do
+    | firstOptionIsDeck = 
         if secondOptionIsNum
             then do
+                printf "Before thing \n"
                 let numOfCardsToQuiz = read $ args !! 1
+                printf "After thing \n"
                 let deckCards = cardsInDeck (head args) cards
                 cardsToQuiz <- filterM shouldQuizCard (take numOfCardsToQuiz deckCards)
                 quizSomeCards cardsToQuiz cards

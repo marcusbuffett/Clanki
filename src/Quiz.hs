@@ -77,7 +77,7 @@ quizSomeCards cards allCards
 quizCard :: Card -> IO (Maybe Card)
 quizCard card = do
     printf $ "Question : " ++ cardQuestion card ++ "\n"
-    printf "Answer : "
+    printf $ "Answer   : "
     hFlush stdout
     answer <- getLine
     confidence <- getConfidence answer (cardAnswer card)
@@ -129,9 +129,11 @@ promptConfidence = do
         Nothing         -> return Nothing
 
 quizFromDeck :: String -> [Card] -> IO [Card]
-quizFromDeck deckName cards = quizSomeCards deckCards cards
+quizFromDeck deckName cards = do
+    cardsToBeQuizzed <- cardsToQuiz deckCards
+    quizSomeCards cardsToBeQuizzed cards
     where
-    deckCards = filter (\card -> cardDeck card == deckName) cards
+    deckCards = cardsInDeck deckName cards
 
 getQuizAction :: [Card] -> IO (Maybe QuizAction)
 getQuizAction [] = do
