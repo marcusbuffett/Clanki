@@ -7,7 +7,7 @@ Command-line spaced-repetition learning software. CL (command line) + Anki (popu
 
 Usage is fairly simple, just follow the instructions after running the program. Add a deck, add cards to the deck, then quiz whenever possible. The program will determine what cards need to be reviewed, using the Super Memo 2 algorithm. Here's an example :
 
-![Screenshot](http://i.imgur.com/mwATA64.png)
+![Screenshot](http://cl.ly/image/0b0C0e2i2j27)
 
 ##Quizzing
 
