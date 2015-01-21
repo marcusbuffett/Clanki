@@ -21,6 +21,22 @@ As of right now, Clanki can only be installed through cabal, which is part of th
     cabal install clanki
 
 
+##Command-line options
+
+Clanki accepts argument when run, here are some examples :
+
+Quiz on 2 cards from the deck 'derivatives' :
+    clanki derivatives 2
+
+Quiz on all cards in the deck 'derivatives' :
+    clanki derivatives
+
+List all decks :
+    clanki --list 'or' clanki -l
+
+Display help :
+clanki --help 'or' clanki -h
+
 ##Help wanted
 
 If anyone reading this knows a bit about homebrew, I'd welcome a pull request, or some pointers on how to get my package on there. 
