@@ -27,9 +27,7 @@ getAction = Input.getUserChoice allActions
 
 runAction :: Maybe Action -> [Card] -> IO ()
 runAction (Just Quit) cards   = do
-    printf "before \n"
     saveData cards
-    printf "after \n"
     return ()
 runAction (Just Add) cards    = addLoop cards   >>= mainLoop
 runAction (Just Quiz) cards   = quizLoop cards  >>= mainLoop
@@ -86,9 +84,7 @@ startWithArgs args cards
     | firstOptionIsDeck = 
         if secondOptionIsNum
             then do
-                printf "Before thing \n"
                 let numOfCardsToQuiz = read $ args !! 1
-                printf "After thing \n"
                 let deckCards = cardsInDeck (head args) cards
                 cardsToQuiz <- filterM shouldQuizCard (take numOfCardsToQuiz deckCards)
                 quizSomeCards cardsToQuiz cards
