@@ -7,7 +7,7 @@ Command-line spaced-repetition learning software. CL (command line) + Anki (popu
 
 Usage is fairly simple, just follow the instructions after running the program. Add a deck, add cards to the deck, then quiz whenever possible. The program will determine what cards need to be reviewed, using the Super Memo 2 algorithm. Here's an example :
 
-![Screenshot](http://i.imgur.com/mwATA64.png)
+![Screenshot](https://s3.amazonaws.com/f.cl.ly/items/1Q432s0y0H153J3m3D2m/Screen%20Shot%202015-01-20%20at%206.57.58%20PM.png)
 
 ##Quizzing
 
@@ -20,6 +20,26 @@ As of right now, Clanki can only be installed through cabal, which is part of th
     cabal update
     cabal install clanki
 
+
+##Command-line options
+
+Clanki accepts argument when run, here are some examples :
+
+Quiz on 2 cards from the deck 'derivatives' :
+    
+    clanki derivatives 2
+
+Quiz on all cards in the deck 'derivatives' :
+   
+    clanki derivatives
+
+List all decks :
+    
+    clanki --list 'or' clanki -l
+
+Display help :
+
+    clanki --help 'or' clanki -h
 
 ##Help wanted
 
