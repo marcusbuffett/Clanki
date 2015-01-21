@@ -131,7 +131,7 @@ promptConfidence = do
     hSetBuffering stdout LineBuffering
     case readInput of
         Just confidence -> if confidence `elem` [0 .. 5] then return $ Just confidence else promptConfidence
-        Nothing         -> return Nothing
+        Nothing         -> printf "\n" >> return Nothing
 
 quizFromDeck :: String -> [Card] -> IO [Card]
 quizFromDeck deckName cards = do
