@@ -15,10 +15,13 @@ addLoop decks = do
     runAddAction addAction decks
 
 runAddAction :: Maybe AddAction -> [Card] -> IO [Card]
-runAddAction = maybe return newOrTo
-  where
-      newOrTo NewDeck = newDeck
-      newOrTo ToDeck  = toDeck
+runAddAction (Just NewDeck) cards = do
+    printf $ "Press <Enter> at any time to stop adding" ++ "\n"
+    newDeck cards
+runAddAction (Just ToDeck)  cards = do
+    printf $ "Press <Enter> at any time to stop adding" ++ "\n"
+    toDeck cards
+runAddAction Nothing        cards = return cards
 
 newDeck :: [Card] -> IO [Card]
 newDeck cards = do
@@ -27,10 +30,10 @@ newDeck cards = do
         "" -> return cards
         _  -> if any (\card -> cardDeck card == deckName) cards
                 then do
-                  printf $ "Invalid input, already a deck with that name" ++ "\n"
-                  newDeck cards
+                    printf $ "Invalid input, already a deck with that name" ++ "\n"
+                    newDeck cards
                 else 
-                  toDeckLoop deckName cards
+                    toDeckLoop deckName cards
 
 toDeck :: [Card] -> IO [Card]
 toDeck cards = do
@@ -44,21 +47,20 @@ toDeck cards = do
 
 toDeckLoop :: String -> [Card] -> IO [Card]
 toDeckLoop deckName cards = do
-    question <- Input.sameLinePrompt "Add question (<Enter> to stop adding) : "
-
+    question <- Input.sameLinePrompt "Add question : "
     case question of 
         "" -> do
                 {-printf $ "You wish to stop adding" ++ "\n"-}
                 printf "\n"
                 return cards
         _  -> do
-                answer <- Input.sameLinePrompt "Add answer : "
-                case answer of
-                    "" -> do
-                        return cards
-                    _  -> do
-                        let card = newCard question answer deckName
-                        toDeckLoop deckName (card:cards)
+            answer <- Input.sameLinePrompt "Add answer   : "
+            case answer of
+                "" -> do
+                    return cards
+                _  -> do
+                    let card = newCard question answer deckName
+                    toDeckLoop deckName (card:cards)
 
 getAddAction :: [Card] -> IO (Maybe AddAction)
 getAddAction [] = return $ Just NewDeck

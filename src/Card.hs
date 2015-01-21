@@ -20,7 +20,7 @@ printCard :: Card -> IO ()
 printCard card = printf $ "Q : " ++ cardQuestion card ++ "\n" ++ "A : " ++ cardAnswer card
 
 allDeckNames :: [Card] -> [String]
-allDeckNames cards = nub $ [cardDeck card | card <- cards]
+allDeckNames cards = nub . map cardDeck $ cards
 
 cardsInDeck :: String -> [Card] -> [Card]
 cardsInDeck deckName cards = filter (\card -> cardDeck card == deckName) cards

@@ -35,7 +35,8 @@ runQuizAction (Just AllCards) cards = cardsToQuiz cards >>= (\someCards -> quizS
 runQuizAction (Just FromDeck) cards = do
         input <- Input.getUserChoiceStr $ allDeckNames cards
         case input of
-            Just deckName -> quizFromDeck deckName cards
+            Just deckName -> do
+                quizFromDeck deckName cards
             Nothing   -> return cards
 runQuizAction Nothing decks = return decks
 
@@ -43,7 +44,6 @@ runQuizAction Nothing decks = return decks
 {-quizCards cards = do-}
     {-newCards <- sequence [maybeQuiz card | card <- cards]-}
     {-return cards-}
-
 
 {-maybeQuiz :: Card -> IO Card-}
 {-maybeQuiz card = shouldQuizCard card >>= (\shouldQuiz -> if shouldQuiz then quizCard card else return card)-}
@@ -56,23 +56,27 @@ quizCards []    = return []
 quizCards cards = quizSomeCards cards cards
 
 quizSomeCards :: [Card] -> [Card] -> IO [Card]
-quizSomeCards cards allCards
-    | null cards = return allCards
-    | otherwise = do
-    quizResult <- quizCard headCard
-    case quizResult of
-        Nothing -> return allCards
-        Just updatedCard -> do
-            needsRequizzing <- shouldQuizCard updatedCard
-            if needsRequizzing
-                then do
-                    quizSomeCards (restOfCards ++ [updatedCard]) allCards
-                else do
-                    let newAllCards = (updatedCard:) . delete headCard $ allCards 
-                    quizSomeCards (restOfCards) newAllCards
+quizSomeCards subset set = do
+    printf "Press <Enter> at any time to stop quizzing\n"
+    quizSomeCards' subset set 
     where
-    headCard = head cards
-    restOfCards = tail cards
+    quizSomeCards' cards allCards
+        | null cards = return allCards
+        | otherwise = do
+        quizResult <- quizCard headCard
+        case quizResult of
+            Nothing -> return allCards
+            Just updatedCard -> do
+                needsRequizzing <- shouldQuizCard updatedCard
+                if needsRequizzing
+                    then do
+                        quizSomeCards' (restOfCards ++ [updatedCard]) allCards
+                    else do
+                        let newAllCards = (updatedCard:) . delete headCard $ allCards 
+                        quizSomeCards' (restOfCards) newAllCards
+        where
+        headCard = head cards
+        restOfCards = tail cards
 
 quizCard :: Card -> IO (Maybe Card)
 quizCard card = do
@@ -80,7 +84,7 @@ quizCard card = do
     {-printf $ "Answer   : "-}
     {-hFlush stdout-}
     {-answer <- getLine-}
-    answer <- Input.sameLinePrompt "Answer : "
+    answer <- Input.sameLinePrompt "Answer   : "
     confidence <- getConfidence answer (cardAnswer card)
     case confidence of
         Just conf -> do
@@ -100,7 +104,7 @@ getConfidence answer correctAnswer
     | isJust inferredConfidence = return $ inferredConfidence
     | otherwise = do
             printf $ "Correct answer : " ++ correctAnswer ++ "\n"
-            printf $ "Rate your answer on a scale from 0-5, <Enter> to stop quizzing : "
+            printf $ "Rate your answer on a scale from 0-5 : "
             hFlush stdout
             promptConfidence
     where
@@ -140,12 +144,15 @@ getQuizAction :: [Card] -> IO (Maybe QuizAction)
 getQuizAction [] = do
             printf $ "No decks, returning to menu" ++ "\n"
             return Nothing
-getQuizAction decks = do
-    cardsToBeQuizzed <- cardsToQuiz decks
+getQuizAction cards = do
+    cardsToBeQuizzed <- cardsToQuiz cards
     case cardsToBeQuizzed of
         [] -> do
             printf $ "No cards need to be quizzed at this time" ++ "\n" 
             return Nothing
         _  -> do
-            printf $ "What would you like to be quizzed on?" ++ "\n"
-            Input.getUserChoice allQuizActions
+            case allDeckNames cards of
+                [_] -> return $ Just AllCards
+                _   -> do
+                    printf $ "What would you like to be quizzed on?" ++ "\n"
+                    Input.getUserChoice allQuizActions
