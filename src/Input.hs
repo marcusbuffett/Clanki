@@ -1,7 +1,7 @@
-module Input(getUserChoice, getUserChoiceStr) where
+module Input(getUserChoice, getUserChoiceStr, sameLinePrompt) where
 import Text.Printf(printf)
 import Data.Maybe(isJust)
-import System.IO(hSetBuffering, BufferMode(NoBuffering, LineBuffering), stdin, stdout)
+import System.IO(hSetBuffering, BufferMode(NoBuffering, LineBuffering), stdin, stdout, hFlush)
 import Display
 import Control.Monad(when)
 import Data.Char(toUpper)
@@ -53,3 +53,8 @@ userInputLetter = do
     putStrLn ""
     return input
 
+sameLinePrompt :: String -> IO String
+sameLinePrompt prompt = do
+    printf prompt
+    hFlush stdout
+    getLine

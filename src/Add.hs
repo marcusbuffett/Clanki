@@ -1,6 +1,5 @@
 module Add where
 import Card
-{-import Decks-}
 import Display
 import Text.Printf(printf)
 import qualified Input
@@ -23,8 +22,7 @@ runAddAction = maybe return newOrTo
 
 newDeck :: [Card] -> IO [Card]
 newDeck cards = do
-    printf $ "Input the name of the new deck" ++ "\n"
-    deckName <- getLine
+    deckName <- Input.sameLinePrompt "New deck name : "
     case deckName of 
         "" -> return cards
         _  -> if any (\card -> cardDeck card == deckName) cards
@@ -46,15 +44,15 @@ toDeck cards = do
 
 toDeckLoop :: String -> [Card] -> IO [Card]
 toDeckLoop deckName cards = do
-    printf $ "Input the question, or press <Enter> to stop adding" ++ "\n"
-    question <- getLine
+    question <- Input.sameLinePrompt "Add question (<Enter> to stop adding) : "
+
     case question of 
         "" -> do
                 {-printf $ "You wish to stop adding" ++ "\n"-}
+                printf "\n"
                 return cards
         _  -> do
-                printf $ "Input the answer" ++ "\n"
-                answer <- getLine
+                answer <- Input.sameLinePrompt "Add answer : "
                 case answer of
                     "" -> do
                         return cards
@@ -64,9 +62,7 @@ toDeckLoop deckName cards = do
 
 getAddAction :: [Card] -> IO (Maybe AddAction)
 getAddAction [] = return $ Just NewDeck
-getAddAction _  = do
-    printf $ "What would you like to do?" ++ "\n"
-    Input.getUserChoice allAddActions
+getAddAction _  = Input.getUserChoice allAddActions
 
 allAddActions :: [AddAction]
 allAddActions = [NewDeck, ToDeck]

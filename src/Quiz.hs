@@ -77,9 +77,10 @@ quizSomeCards cards allCards
 quizCard :: Card -> IO (Maybe Card)
 quizCard card = do
     printf $ "Question : " ++ cardQuestion card ++ "\n"
-    printf $ "Answer   : "
-    hFlush stdout
-    answer <- getLine
+    {-printf $ "Answer   : "-}
+    {-hFlush stdout-}
+    {-answer <- getLine-}
+    answer <- Input.sameLinePrompt "Answer : "
     confidence <- getConfidence answer (cardAnswer card)
     case confidence of
         Just conf -> do
