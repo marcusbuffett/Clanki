@@ -4,9 +4,10 @@ import Data.Maybe(isJust)
 import System.IO(hSetBuffering, BufferMode(NoBuffering, LineBuffering), stdin, stdout)
 import Display
 import Control.Monad(when)
+import Data.Char(toUpper)
 
 keys :: [String]
-keys = map (:[]) ['a' .. 'z']
+keys = map (:[]) ['A' .. 'Z']
 
 getUserChoice :: (Display a) => [a] -> IO (Maybe a)
 getUserChoice = getChoiceWithKeys . zip keys
@@ -48,7 +49,7 @@ getChoiceWithKeys choices = do
 
 userInputLetter :: IO String
 userInputLetter = do
-    input <- fmap (:[]) getChar
+    input <- fmap ((:[]) . toUpper) getChar
     putStrLn ""
     return input
 

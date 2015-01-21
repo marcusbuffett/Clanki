@@ -23,7 +23,7 @@ runAddAction = maybe return newOrTo
 
 newDeck :: [Card] -> IO [Card]
 newDeck cards = do
-    printf $ "Please input the name of the new deck" ++ "\n"
+    printf $ "Input the name of the new deck" ++ "\n"
     deckName <- getLine
     case deckName of 
         "" -> return cards
@@ -46,18 +46,17 @@ toDeck cards = do
 
 toDeckLoop :: String -> [Card] -> IO [Card]
 toDeckLoop deckName cards = do
-    printf $ "Please input the question, enter to stop adding" ++ "\n"
+    printf $ "Input the question, or press <Enter> to stop adding" ++ "\n"
     question <- getLine
     case question of 
         "" -> do
                 {-printf $ "You wish to stop adding" ++ "\n"-}
                 return cards
         _  -> do
-                printf $ "Please input the answer" ++ "\n"
+                printf $ "Input the answer" ++ "\n"
                 answer <- getLine
                 case answer of
                     "" -> do
-                        printf $ "You wish to stop adding" ++ "\n"
                         return cards
                     _  -> do
                         let card = newCard question answer deckName
