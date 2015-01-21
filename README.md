@@ -26,16 +26,20 @@ As of right now, Clanki can only be installed through cabal, which is part of th
 Clanki accepts argument when run, here are some examples :
 
 Quiz on 2 cards from the deck 'derivatives' :
+    
     clanki derivatives 2
 
 Quiz on all cards in the deck 'derivatives' :
+   
     clanki derivatives
 
 List all decks :
+    
     clanki --list 'or' clanki -l
 
 Display help :
-clanki --help 'or' clanki -h
+
+    clanki --help 'or' clanki -h
 
 ##Help wanted
 
