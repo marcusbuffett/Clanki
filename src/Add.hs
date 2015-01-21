@@ -50,7 +50,7 @@ toDeckLoop deckName cards = do
     question <- getLine
     case question of 
         "" -> do
-                printf $ "You wish to stop adding" ++ "\n"
+                {-printf $ "You wish to stop adding" ++ "\n"-}
                 return cards
         _  -> do
                 printf $ "Please input the answer" ++ "\n"
