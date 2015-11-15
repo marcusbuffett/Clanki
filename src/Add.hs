@@ -39,9 +39,7 @@ toDeck :: [Card] -> IO [Card]
 toDeck cards = do
     chosenDeckName <- Input.getUserChoiceStr $ allDeckNames cards
     case chosenDeckName of
-        Just deckName -> do
-                        newCards <- toDeckLoop deckName cards
-                        return newCards
+        Just deckName -> toDeckLoop deckName cards
         Nothing -> return cards
 
 
@@ -56,8 +54,7 @@ toDeckLoop deckName cards = do
         _  -> do
             answer <- Input.sameLinePrompt "Add answer   : "
             case answer of
-                "" -> do
-                    return cards
+                "" -> return cards
                 _  -> do
                     let card = newCard question answer deckName
                     toDeckLoop deckName (card:cards)

@@ -3,4 +3,6 @@
 tags
 *.clanki
 dist/
+.cabal-sandbox
+cabal.sandbox.config
 

@@ -8,10 +8,9 @@ import Safe(readMay)
 import Data.Time.Clock.POSIX
 import Data.Maybe(isJust)
 import qualified Input
-import Control.Monad(filterM)
+import Control.Monad(filterM, liftM)
 import System.IO(hSetBuffering, BufferMode(NoBuffering, LineBuffering), stdin, stdout, hFlush)
 import Data.List((\\), isInfixOf, delete)
-{-import StatTracker-}
 data QuizAction = AllCards | FromDeck deriving (Show, Eq)
 
 allQuizActions :: [QuizAction]
@@ -27,29 +26,20 @@ quizLoop cards = do
     runQuizAction quizAction cards
 
 anyCardsToQuiz :: [Card] -> IO Bool
-anyCardsToQuiz cards = shouldQuizList >>= return . (True `elem`)
-    where shouldQuizList = sequence [shouldQuizCard card | card <- cards] 
+anyCardsToQuiz cards = liftM (True `elem`) shouldQuizList
+    where shouldQuizList = sequence $ fmap shouldQuizCard cards
 
 runQuizAction :: Maybe QuizAction -> [Card] -> IO [Card]
 runQuizAction (Just AllCards) cards = cardsToQuiz cards >>= (\someCards -> quizSomeCards someCards cards)
 runQuizAction (Just FromDeck) cards = do
         input <- Input.getUserChoiceStr $ allDeckNames cards
         case input of
-            Just deckName -> do
-                quizFromDeck deckName cards
+            Just deckName -> quizFromDeck deckName cards
             Nothing   -> return cards
 runQuizAction Nothing decks = return decks
 
-{-quizCards :: [Card] -> IO [Card]-}
-{-quizCards cards = do-}
-    {-newCards <- sequence [maybeQuiz card | card <- cards]-}
-    {-return cards-}
-
-{-maybeQuiz :: Card -> IO Card-}
-{-maybeQuiz card = shouldQuizCard card >>= (\shouldQuiz -> if shouldQuiz then quizCard card else return card)-}
-
 cardsToQuiz :: [Card] -> IO [Card]
-cardsToQuiz cards = filterM shouldQuizCard cards
+cardsToQuiz = filterM shouldQuizCard
 
 quizCards :: [Card] -> IO [Card]
 quizCards []    = return []
@@ -69,11 +59,10 @@ quizSomeCards subset set = do
             Just updatedCard -> do
                 needsRequizzing <- shouldQuizCard updatedCard
                 if needsRequizzing
-                    then do
-                        quizSomeCards' (restOfCards ++ [updatedCard]) allCards
+                    then quizSomeCards' (restOfCards ++ [updatedCard]) allCards
                     else do
                         let newAllCards = (updatedCard:) . delete headCard $ allCards 
-                        quizSomeCards' (restOfCards) newAllCards
+                        quizSomeCards' restOfCards newAllCards
         where
         headCard = head cards
         restOfCards = tail cards
@@ -81,9 +70,6 @@ quizSomeCards subset set = do
 quizCard :: Card -> IO (Maybe Card)
 quizCard card = do
     printf $ "Question : " ++ cardQuestion card ++ "\n"
-    {-printf $ "Answer   : "-}
-    {-hFlush stdout-}
-    {-answer <- getLine-}
     answer <- Input.sameLinePrompt "Answer   : "
     confidence <- getConfidence answer (cardAnswer card)
     case confidence of
@@ -101,25 +87,21 @@ quizCard card = do
 
 getConfidence :: String -> String -> IO (Maybe Int)
 getConfidence answer correctAnswer
-    | isJust inferredConfidence = return $ inferredConfidence
+    | isJust inferredConfidence = return inferredConfidence
     | otherwise = do
             printf $ "Correct answer : " ++ correctAnswer ++ "\n"
-            printf $ "Rate your answer on a scale from 0-5 : "
+            printf "Rate your answer on a scale from 0-5 : "
             hFlush stdout
             promptConfidence
     where
     inferredConfidence = inferConfidence answer correctAnswer
 
+{- Default values to use when the user is right, not yet implemented -}
 inferConfidence :: String -> String -> Maybe Int
 inferConfidence answer correctAnswer
-    | rightAnswer =
-        case answer \\ correctAnswer of
-            {-"!" -> Just 5-}
-            {-"." -> Just 4-}
-            {-"?" -> Just 3-}
-            _   -> Nothing
+    | rightAnswer = Nothing
     | otherwise   = Nothing
-        where rightAnswer = correctAnswer `isInfixOf` answer
+        where rightAnswer = correctAnswer == answer
 
 promptConfidence :: IO (Maybe Int)
 promptConfidence = do
@@ -150,8 +132,7 @@ getQuizAction cards = do
         [] -> do
             printf $ "No cards need to be quizzed at this time" ++ "\n" 
             return Nothing
-        _  -> do
-            case allDeckNames cards of
+        _  -> case allDeckNames cards of
                 [_] -> return $ Just AllCards
                 _   -> do
                     printf $ "What would you like to be quizzed on?" ++ "\n"

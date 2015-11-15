@@ -23,7 +23,7 @@ allDeckNames :: [Card] -> [String]
 allDeckNames cards = nub . map cardDeck $ cards
 
 cardsInDeck :: String -> [Card] -> [Card]
-cardsInDeck deckName cards = filter (\card -> cardDeck card == deckName) cards
+cardsInDeck deckName = filter ((== deckName) . cardDeck)
 
 replaceCardsInDeck :: String -> [Card] -> [Card] -> [Card]
 replaceCardsInDeck deckName newCards allCards = do

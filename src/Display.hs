@@ -5,6 +5,6 @@ import Text.Printf(printf)
 class (Show a) => Display a where
     display :: a -> String
 
-displayList list = do
-    printf . (++ "\n") . intercalate "\n" . map (("-" ++) . display) $ list
+displayList :: Display a => [a] -> IO ()
+displayList list = printf . (++ "\n") . intercalate "\n" . map (("-" ++) . display) $ list
 
