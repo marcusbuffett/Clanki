@@ -20,6 +20,7 @@ As of right now, Clanki can only be installed through cabal, which is part of th
     cabal update
     cabal install clanki
 
+The clanki executable should now be available in `$HOME/.cabal/bin/`.
 
 ##Command-line options
 
